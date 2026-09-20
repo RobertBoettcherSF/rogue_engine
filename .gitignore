@@ -1,0 +1,5 @@
+obj/
+tests
+*.ali
+*.o
+*.bexch
