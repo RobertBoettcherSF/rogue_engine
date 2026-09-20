@@ -44,6 +44,8 @@ package Game_Demo is
       Human_Zone    : Game_Atmosphere.Air_Zone := Game_Atmosphere.Cabin;
       Suit          : Game_Suit.EVA_Suit;
       Lock          : Game_Environment.Airlock;
+      Surface_G_Tenths : Game_Actors.G_Load_Tenths :=
+                          Game_Atmosphere.Earth_Surface_G_Tenths;
       Strider_Face  : Facing := North;
       Explore       : Game_Dream_RSI.Discovery_Tree;
       Policy        : Game_Dream_RSI.Exploration_Policy;
@@ -163,6 +165,9 @@ package Game_Demo is
 
 
    procedure Doff_Helmet (State : in out Demo_State)
+   with Global => null;
+
+   procedure Doff_EVA (State : in out Demo_State)
    with Global => null;
 
    --  Airlock cycle to storm then Open_Outer; requires sealed EVA.
