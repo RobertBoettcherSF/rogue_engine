@@ -87,7 +87,7 @@ begin
    Check (Human.Oxygenation = 100, "Scenario start human full O2");
    Check (Bot.Power = 100, "Scenario start robot full power");
 
-   --  Body profiles via data (same P×mix breathe; no engine fork).
+   --  Body profiles via data (same Pxmix breathe; no engine fork).
    Cabin := Atm.Cabin_Earth_Air;
    Thin := Atm.Mars_Thin_Storm_Air;
    Mars := Atm.Mars_Exterior_Air;
@@ -117,7 +117,7 @@ begin
      (Cfg_B.Storm.Pressure_kPa = Titan.Pressure_kPa,
       "Titan scenario storm P matches exterior profile");
 
-   --  Story_Arc phase → SI (Passenger_P / P).
+   --  Story_Arc phase -> SI (Passenger_P / P).
    declare
       Story : Arc.Arc_State;
       Mail  : Msg.Inbox;
@@ -138,24 +138,36 @@ begin
       Check (Story.Phase = Arc.Pad, "Advance to Pad");
       Check (Story.Cabin.Pressure_kPa = 101, "Pad cabin held");
 
+      Check (Story.Rad_uSv_h = Arc.Cabin_Rad_uSv_h, "Bunker/Pad cabin rad");
+
       Arc.Advance_Phase (Story, Human, Mail, "Station");
       Check (Story.Phase = Arc.Ascent, "Advance to Ascent");
+      Check (Story.Rad_uSv_h = Arc.Ascent_SAA_uSv_h, "Ascent SAA rad");
+      Check (Story.Rad_uSv_h >= Arc.Rad_Caution_uSv_h, "Ascent rad CAUTION band");
+      Check (Story.Lerp_Ticks_Left = Arc.Ascent_Lerp_Ticks, "Ascent lerp armed");
+      Check (Story.G_Load_Tenths < Arc.Ascent_Peak_G_Tenths, "Ascent g not yet peak");
+      Check (Story.Cabin.Pressure_kPa = 101, "Ascent cabin P held");
+      Check (Atm.O2_Partial_kPa (Story.Cabin) = 21, "Ascent O2p held");
+      Arc.Tick_Sensors (Story, Human, Arc.Ascent_Lerp_Ticks);
+      Check (Story.Lerp_Ticks_Left = 0, "Ascent lerp done");
       Check (Story.G_Load_Tenths = Arc.Ascent_Peak_G_Tenths, "Ascent peak const");
       Check (Story.G_Load_Tenths >= 30 and then Story.G_Load_Tenths <= 40,
              "Ascent peak in 3-4 g");
-      Check (Story.Cabin.Pressure_kPa = 101, "Ascent cabin P held");
-      Check (Atm.O2_Partial_kPa (Story.Cabin) = 21, "Ascent O2p held");
       Check (Human.G_Load = Arc.Ascent_Peak_G_Tenths, "Ascent human G");
       Check (Human.Vision_Clarity > 0, "Ascent not blackout");
 
       Arc.Advance_Phase (Story, Human, Mail, "Station");
       Check (Story.Phase = Arc.Coast, "Advance to Coast");
-      Check (Story.G_Load_Tenths = 0, "Coast g≈0");
+      Check (Story.Rad_uSv_h = Arc.Coast_GCR_uSv_h, "Coast GCR rad");
       Check (Story.Micro_G, "Coast micro-g");
+      Arc.Tick_Sensors (Story, Human, Arc.Ascent_Lerp_Ticks);
+      Check (Story.G_Load_Tenths = 0, "Coast g~0");
       Check (Human.G_Load = 0, "Coast human G 0");
 
       Arc.Advance_Phase (Story, Human, Mail, "Station");
       Check (Story.Phase = Arc.Dock, "Advance to Dock");
+      Check (Story.Rad_uSv_h = Arc.Dock_EVA_Rad_uSv_h, "Dock EVA rad");
+      Check (Story.Rad_uSv_h >= Arc.Rad_Alert_uSv_h, "Dock rad ALERT band");
       Check (Story.Exterior.Pressure_kPa = 0, "Dock exterior vacuum");
       Check (Story.Cabin.Pressure_kPa = 101, "Dock cabin station bands");
       Check (Atm.O2_Partial_kPa (Story.Cabin) = 21, "Dock cabin O2p");
