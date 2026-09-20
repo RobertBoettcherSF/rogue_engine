@@ -6,7 +6,7 @@ Pure Ada terminal — no GUI toolkit. Same UI on **any surface** (Earth / Mars /
 
 | Feature | Behavior |
 |---------|----------|
-| Map | ASCII overmap; `@` = you |
+| Map | ASCII overmap; `@` = you; `#` wall; `=` console; `h` seat; `+` door closed, `.` door open |
 | Coords | `LEVEL / X / Y` on cuff (surface LEVEL=0; bunker negative floor) |
 | Cursor | Pan with `wasd` / `hjkl` (`+`) |
 | Course | `W` preview → confirm; `.` steps along; length in **m** (1 tile = 1 m) |

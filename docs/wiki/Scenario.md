@@ -42,7 +42,7 @@ Titan flight-control is a **scenario**, not the engine identity.
 | Cast | Human 4 floors down; rover outside |
 | Link | Sealed double-door airlock |
 | Outdoor | Earth dust storm, Mars-like hostility (see Physical_Data) |
-| Ops | Center console island + headset (`Game_Ops_Room` 5×4 @ 1 m) |
+| Ops | Center console island + headset (`Game_Ops_Room` 3×3 @ 1 m) |
 | Dream-RSI | Rover Explore → bunker Construct/Dream → Redeploy |
 
 ## Scenario B — Titan-style flight control

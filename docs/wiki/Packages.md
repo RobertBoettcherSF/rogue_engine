@@ -11,7 +11,7 @@
 | `Game_Environment` | yes | Bunker depth, airlock, storm, satellite, aurora | L2–L4 (airlock) |
 | `Game_Atmosphere` | yes | Tile air; O2-partial = P×O2%; cabin vs exterior | L2–L4 candidate |
 | `Game_Turn` | yes | Turn / wall-minute clock; AP grant; walk cost | L2–L4 candidate |
-| `Game_Ops_Room` | yes | 5×4 @ 1 m, heights, ~44 m³ | L2–L4 candidate |
+| `Game_Ops_Room` | yes | 3×3 @ 1 m, heights, ~20 m³ | L2–L4 candidate |
 | `Game_Story_Arc` | yes | Phase→profile SI; Passenger_P (P) | L2–L4 candidate |
 | `Game_Scenario` | yes | Starts; linked outdoor **Strider** | L2–L4 candidate |
 | `Game_Strider` | yes | Vehicle kg/kW; full + demo chassis; remote link | L2–L4 (strider-link) |
