@@ -7,54 +7,54 @@ with Game_Actors;
 with Game_Atmosphere;
 with Game_Messages;
 
---  Lean Story_Arc (Story_Arc.md): phase → world profile swaps.
---  Passenger_P (P) rides Bunker → Pad → Ascent → Coast → Dock/Station.
---  STORY/ANNOUNCEMENT seed the communicator; ALERT/CAUTION stay watchdog-only
---  (never blocked by STORY; STORY never mutates SI — Advance_Phase does SI).
+--  Lean Story_Arc: phase→profile. Passenger_P (P). STORY never mutates SI.
+--  Step: phase / exterior vacuum / rad. Lerp: g + cabin CO2 (ascent/coast).
 package Game_Story_Arc is
 
-   --  Human role name (lean): Passenger_P / P in seeds and board copy.
    Passenger_P_Name : constant String := "Passenger_P";
 
    type Story_Phase is (Bunker, Pad, Ascent, Coast, Dock);
 
-   --  Ascent peak ~3–4 g (tenths). Greyout band ~4.5+ g lives in Actors
-   --  (Apply_G_Vision_Effects: >=46 → heavy dim).
-   Ascent_Peak_G_Tenths : constant Game_Actors.G_Load_Tenths := 35;  -- 3.5 g
+   Ascent_Peak_G_Tenths : constant Game_Actors.G_Load_Tenths := 35;
+   Ascent_Lerp_Ticks    : constant Positive := 5;
+
+   subtype Dose_Rate_uSv_h is Natural;
+   Cabin_Rad_uSv_h    : constant Dose_Rate_uSv_h := 1;
+   Ascent_SAA_uSv_h   : constant Dose_Rate_uSv_h := 80;
+   Coast_GCR_uSv_h    : constant Dose_Rate_uSv_h := 120;
+   Dock_EVA_Rad_uSv_h : constant Dose_Rate_uSv_h := 500;
+   Rad_Caution_uSv_h  : constant Dose_Rate_uSv_h := 50;
+   Rad_Alert_uSv_h    : constant Dose_Rate_uSv_h := 200;
 
    type Arc_State is record
-      Phase         : Story_Phase := Bunker;
-      Cabin         : Game_Atmosphere.Tile_Atmosphere;
-      Exterior      : Game_Atmosphere.Tile_Atmosphere;
-      G_Load_Tenths : Game_Actors.G_Load_Tenths := 10;
-      Micro_G       : Boolean := False;
+      Phase              : Story_Phase := Bunker;
+      Cabin              : Game_Atmosphere.Tile_Atmosphere;
+      Exterior           : Game_Atmosphere.Tile_Atmosphere;
+      G_Load_Tenths      : Game_Actors.G_Load_Tenths := 10;
+      Micro_G            : Boolean := False;
+      Rad_uSv_h          : Dose_Rate_uSv_h := Cabin_Rad_uSv_h;
+      Target_G_Tenths    : Game_Actors.G_Load_Tenths := 10;
+      Target_CO2_Percent : Game_Atmosphere.Percent := 0;
+      Lerp_Ticks_Left    : Natural := 0;
    end record;
 
-   function Phase_Name (P : Story_Phase) return String
-   with Global => null;
-
-   function Profile_For (P : Story_Phase) return Arc_State
-   with Global => null;
+   function Phase_Name (P : Story_Phase) return String with Global => null;
+   function Profile_For (P : Story_Phase) return Arc_State with Global => null;
+   function Rad_Band_Label (Rate : Dose_Rate_uSv_h) return String with Global => null;
 
    procedure Start_Arc
-     (Arc   : out Arc_State;
-      Human : in out Game_Actors.Human_Actor;
-      Mail  : in out Game_Messages.Inbox;
-      Dest  : String)
-   with Global => null;
+     (Arc : out Arc_State; Human : in out Game_Actors.Human_Actor;
+      Mail : in out Game_Messages.Inbox; Dest : String) with Global => null;
 
-   --  Next phase SI swap + STORY/ANNOUNCEMENT seed. No Clear (ALERT stays).
-   --  No-op at Dock.
    procedure Advance_Phase
-     (Arc   : in out Arc_State;
-      Human : in out Game_Actors.Human_Actor;
-      Mail  : in out Game_Messages.Inbox;
-      Dest  : String)
-   with Global => null;
+     (Arc : in out Arc_State; Human : in out Game_Actors.Human_Actor;
+      Mail : in out Game_Messages.Inbox; Dest : String) with Global => null;
+
+   procedure Tick_Sensors
+     (Arc : in out Arc_State; Human : in out Game_Actors.Human_Actor;
+      Steps : Positive := 1) with Global => null;
 
    procedure Apply_Human_Load
-     (Arc   : Arc_State;
-      Human : in out Game_Actors.Human_Actor)
-   with Global => null;
+     (Arc : Arc_State; Human : in out Game_Actors.Human_Actor) with Global => null;
 
 end Game_Story_Arc;
