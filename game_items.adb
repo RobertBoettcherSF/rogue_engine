@@ -1,23 +1,5 @@
 --  SPDX-License-Identifier: MIT
 --  Copyright (c) 2026 Robert Boettcher
---
---  Permission is hereby granted, free of charge, to any person obtaining a copy
---  of this software and associated documentation files (the "Software"), to deal
---  in the Software without restriction, including without limitation the rights
---  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
---  copies of the Software, and to permit persons to whom the Software is
---  furnished to do so, subject to the following conditions:
---
---  The above copyright notice and this permission notice shall be included in
---  all copies or substantial portions of the Software.
---
---  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
---  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
---  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
---  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
---  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
---  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
---  SOFTWARE.
 
 pragma Ada_2022;
 
@@ -141,7 +123,7 @@ package body Game_Items is
       end if;
       Pack.Slots (Pack.Count) :=
         (Hull_Mass        => 0,
-         Integrity         => 100,
+         Integrity        => 100,
          Hull_Temp_C      => 20,
          Content_State    => Solid,
          Content_Mass     => 0,
@@ -210,6 +192,7 @@ package body Game_Items is
    end Is_Plasma_Catastrophe;
 
    function Plasma_Leak_Effects (C : Container) return Leak_Effects is
+      pragma Unreferenced (C);
    begin
       return
         (Burn         => True,
@@ -288,5 +271,54 @@ package body Game_Items is
       end if;
       S.Refined := True;
    end Process_Sample;
+
+   procedure Consume_Matter
+     (C           : in out Container;
+      Expected    : Matter_State;
+      Grams       : Mass_Grams;
+      Taken       : out Mass_Grams)
+   is
+   begin
+      if C.Content_State /= Expected then
+         raise Wrong_Matter_State_Error;
+      end if;
+      if C.Integrity = 0 then
+         if Is_Plasma_Catastrophe (C) then
+            raise Plasma_Containment_Lost;
+         end if;
+         raise Hull_Ruptured_Error;
+      end if;
+      if not Can_Access_Content (C) then
+         raise Content_Sealed_Error;
+      end if;
+      if C.Content_Mass = 0 then
+         raise Sample_Empty_Error;
+      end if;
+
+      if Grams >= C.Content_Mass then
+         Taken := C.Content_Mass;
+      else
+         Taken := Grams;
+      end if;
+      C.Content_Mass := C.Content_Mass - Taken;
+   end Consume_Matter;
+
+   procedure Bite
+     (C      : in out Container;
+      Grams  : Mass_Grams := Default_Bite_Grams;
+      Taken  : out Mass_Grams)
+   is
+   begin
+      Consume_Matter (C, Solid, Grams, Taken);
+   end Bite;
+
+   procedure Sip
+     (C      : in out Container;
+      Grams  : Mass_Grams := Default_Sip_Grams;
+      Taken  : out Mass_Grams)
+   is
+   begin
+      Consume_Matter (C, Liquid, Grams, Taken);
+   end Sip;
 
 end Game_Items;
