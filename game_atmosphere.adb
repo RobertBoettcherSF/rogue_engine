@@ -51,4 +51,31 @@ package body Game_Atmosphere is
          Volume_Liters => 1_000_000);
    end Storm_Exterior_Air;
 
+   function Mars_Thin_Storm_Air return Tile_Atmosphere is
+   begin
+      return Storm_Exterior_Air;
+   end Mars_Thin_Storm_Air;
+
+   function Mars_Exterior_Air return Tile_Atmosphere is
+   begin
+      --  ~0.6 kPa CO2-dominated; lean integer P=1 kPa, O2%=0.
+      return
+        (Zone          => Exterior,
+         O2_Percent    => 0,
+         CO2_Percent   => 95,
+         Pressure_kPa  => Mars_Exterior_Pressure_kPa,
+         Volume_Liters => 1_000_000);
+   end Mars_Exterior_Air;
+
+   function Titan_Exterior_Air return Tile_Atmosphere is
+   begin
+      --  ~147 kPa N2+CH4; no O2 field for CH4 -- O2%=0 means unbreathable.
+      return
+        (Zone          => Exterior,
+         O2_Percent    => 0,
+         CO2_Percent   => 0,
+         Pressure_kPa  => Titan_Exterior_Pressure_kPa,
+         Volume_Liters => 1_000_000);
+   end Titan_Exterior_Air;
+
 end Game_Atmosphere;
