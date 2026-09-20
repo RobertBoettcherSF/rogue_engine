@@ -26,10 +26,14 @@ package body Game_Demo is
       end case;
    end Human_Air;
 
-   function Wrist (State : Demo_State) return Wrist_Readout is
+   function Build_Wrist
+     (State : Demo_State;
+      Garble_Noncritical : Boolean) return Wrist_Readout
+   is
       Air : constant Game_Atmosphere.Tile_Atmosphere := Human_Air (State);
+      W   : Wrist_Readout;
    begin
-      return
+      W :=
         (Zone           => Air.Zone,
          Pressure_kPa   => Natural (Air.Pressure_kPa),
          O2_Percent     => Natural (Air.O2_Percent),
@@ -38,8 +42,81 @@ package body Game_Demo is
          Tissue_O2      => State.Human.Oxygenation,
          Suit_Sealed    => Game_Suit.Is_Sealed_For_EVA (State.Suit),
          Suit_Minutes   => Natural (State.Suit.Life_Left_Min),
-         AP             => State.Human.AP);
+         AP             => State.Human.AP,
+         Vision_Clarity => State.Human.Vision_Clarity,
+         G_Load         => State.Human.G_Load,
+         Garbled        => Garble_Noncritical,
+         Alarm_Pushed   => State.Last_Alarm_Code > 0,
+         Alarm_Code     => State.Last_Alarm_Code,
+         Glance_Ok      => True);
+      if Garble_Noncritical then
+         --  Non-critical telemetry unreadable; keep tissue O2 / alarms path.
+         W.O2_Percent := Unreadable_Sentinel;
+         W.CO2_Percent := Unreadable_Sentinel;
+         W.Pressure_kPa := Unreadable_Sentinel;
+         W.O2_Partial_kPa := Unreadable_Sentinel;
+         W.Suit_Minutes := Unreadable_Sentinel;
+      end if;
+      return W;
+   end Build_Wrist;
+
+   function Wrist (State : Demo_State) return Wrist_Readout is
+      Garble : constant Boolean :=
+        State.Human.Vision_Clarity > 0
+        and then State.Human.Vision_Clarity <= 20;
+   begin
+      --  Snapshot: garble when heavy dim (~20%) but not full blackout.
+      return Build_Wrist (State, Garble_Noncritical => Garble);
    end Wrist;
+
+   procedure Glance_Wrist
+     (State : in out Demo_State;
+      Out_W : out Wrist_Readout)
+   is
+      Cost   : Natural;
+      Garble : Boolean;
+   begin
+      if State.Human.Sleeping then
+         raise Game_Actors.Asleep_Error;
+      end if;
+      --  Blackout blocks voluntary glance until G drops (Ops).
+      if not Game_Actors.Can_Raise_Arm (State.Human) then
+         raise Glance_Failed;
+      end if;
+      Cost := Game_Actors.Glance_AP_Cost (State.Human);
+      if State.Human.AP < Game_Actors.Action_Points (Cost) then
+         raise Insufficient_AP;
+      end if;
+      if Cost > 0 then
+         Game_Actors.Adjust_Action_Points (State.Human, -Integer (Cost));
+      end if;
+      Garble :=
+        State.Human.Vision_Clarity > 0
+        and then State.Human.Vision_Clarity <= 20;
+      Out_W := Build_Wrist (State, Garble_Noncritical => Garble);
+      Out_W.Glance_Ok := True;
+   end Glance_Wrist;
+
+   procedure Push_Critical_Alarm
+     (State : in out Demo_State;
+      Code  : Positive)
+   is
+   begin
+      --  Critical alarms push (tone + auto cuff line) without Can_Raise_Arm.
+      State.Last_Alarm_Code := Code;
+   end Push_Critical_Alarm;
+
+   function Passenger_Panel
+     (State : Demo_State) return Game_Passenger_Board.Passenger_Board
+   is
+   begin
+      return Game_Passenger_Board.Build
+        (Cabin => State.Cabin_Air,
+         Human => State.Human,
+         Clock => State.Clock,
+         Alarm => State.Last_Alarm_Code);
+   end Passenger_Panel;
+
 
 
    function O2_Draw_mL_Per_Min (State : Demo_State) return Positive is
@@ -102,6 +179,8 @@ package body Game_Demo is
       State.Strider_Face := North;
       State.Policy := (Exploration_Weight => 1.0);
       State.Last_Scan_Vis := 0;
+      State.Last_Alarm_Code := 0;
+      State.Cabin_ECLSS := (Enabled => True, O2_Acc_mL => 0, CO2_Acc_mL => 0);
       Game_Items.Clear (State.Pack);
 
       Game_Scenario.Apply_Start (Cfg, State.Human, State.Strider);
