@@ -11,6 +11,7 @@ with Game_Ops_Room;
 --  Flexible starts (Spec): bunker+strider/rover storm OR Titan-style flight control
 --  OR Mars surface. Atmosphere is Scenario *data* (profiles in Game_Atmosphere) --
 --  not a fork of the engine.
+--  Human role (lean): Passenger_P / P (Story_Arc).
 package Game_Scenario is
 
    type Scenario_Id is
