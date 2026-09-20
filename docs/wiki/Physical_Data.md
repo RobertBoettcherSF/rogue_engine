@@ -38,7 +38,7 @@ Mode-switched readouts: see [Passenger_Board.md](Passenger_Board.md). SI: **g** 
 | **~5 g** | **~20%** readable (near G-LOC) |
 | higher / sustained | Blackout — no voluntary glance |
 
-Varies with duration and G-suit. Dense rates drop first as clarity falls; red alarms still push.
+Dense rates drop first as clarity falls; red alarms still push.
 
 ---
 
@@ -62,7 +62,15 @@ Full 1,680,000 / 100,000 kg; demo 50,000 / 500 kg.
 
 ## Airlock / storm / Titan
 
-Both-open forbidden. Titan ~1.47–1.50 bar, ~94 K.
+Both-open forbidden.
+
+### Storm exterior (locked)
+
+**Mars-thin exterior** at **20 kPa** — Earth dust-storm *feel* (cold, visibility 0, dark midday, aurora) with thin-air pressure. **Not** the Earth crashed-air band 70–85 kPa. Code constant should be named Mars-thin (or equivalent), not anonymous Earth default.
+
+With Earth-mix air at 20 kPa ≈ **~4 kPa** O2-partial — unsurvivable without sealed suit/cabin. Breathe suit-loop outdoors.
+
+Titan scenario: ~1.47–1.50 bar, ~94 K.
 
 ---
 
