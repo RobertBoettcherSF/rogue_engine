@@ -9,6 +9,8 @@ with Game_Atmosphere;
 with Game_Environment;
 with Game_Ops_Room;
 with Game_Scenario;
+with Game_Story_Arc;
+with Game_Messages;
 
 --  Focused suite for ops room + scenario starts (run via make test)
 procedure Tests_Ops_Scenario is
@@ -18,11 +20,15 @@ procedure Tests_Ops_Scenario is
    package E renames Game_Environment;
    package R renames Game_Ops_Room;
    package S renames Game_Scenario;
+   package Arc renames Game_Story_Arc;
+   package Msg renames Game_Messages;
    use type R.Cell_Kind;
    use type S.Scenario_Id;
    use type S.Linked_Outdoor_Role;
    use type S.Atmosphere_Kind;
    use type Atm.Tile_Atmosphere;
+   use type Arc.Story_Phase;
+   use type Msg.Message_Kind;
 
    Failed, Passed : Natural := 0;
 
@@ -110,6 +116,65 @@ begin
    Check
      (Cfg_B.Storm.Pressure_kPa = Titan.Pressure_kPa,
       "Titan scenario storm P matches exterior profile");
+
+   --  Story_Arc phase → SI (Passenger_P / P).
+   declare
+      Story : Arc.Arc_State;
+      Mail  : Msg.Inbox;
+      Slot  : Natural;
+      M     : Msg.Message;
+   begin
+      A.Initialize_Human
+        (Human, Location => (X => 1, Y => 1), Speed => 1);
+      Arc.Start_Arc (Story, Human, Mail, "Station");
+      Check (Story.Phase = Arc.Bunker, "Start_Arc phase Bunker");
+      Check (Story.Cabin.Pressure_kPa = 101, "Bunker cabin P 101");
+      Check (Atm.O2_Partial_kPa (Story.Cabin) = 21, "Bunker cabin O2p 21");
+      Check (Story.G_Load_Tenths = 10, "Bunker g=1.00");
+      Check (not Story.Micro_G, "Bunker not micro-g");
+      Check (Human.G_Load = 10, "Bunker human G 10");
+
+      Arc.Advance_Phase (Story, Human, Mail, "Station");
+      Check (Story.Phase = Arc.Pad, "Advance to Pad");
+      Check (Story.Cabin.Pressure_kPa = 101, "Pad cabin held");
+
+      Arc.Advance_Phase (Story, Human, Mail, "Station");
+      Check (Story.Phase = Arc.Ascent, "Advance to Ascent");
+      Check (Story.G_Load_Tenths = Arc.Ascent_Peak_G_Tenths, "Ascent peak const");
+      Check (Story.G_Load_Tenths >= 30 and then Story.G_Load_Tenths <= 40,
+             "Ascent peak in 3-4 g");
+      Check (Story.Cabin.Pressure_kPa = 101, "Ascent cabin P held");
+      Check (Atm.O2_Partial_kPa (Story.Cabin) = 21, "Ascent O2p held");
+      Check (Human.G_Load = Arc.Ascent_Peak_G_Tenths, "Ascent human G");
+      Check (Human.Vision_Clarity > 0, "Ascent not blackout");
+
+      Arc.Advance_Phase (Story, Human, Mail, "Station");
+      Check (Story.Phase = Arc.Coast, "Advance to Coast");
+      Check (Story.G_Load_Tenths = 0, "Coast g≈0");
+      Check (Story.Micro_G, "Coast micro-g");
+      Check (Human.G_Load = 0, "Coast human G 0");
+
+      Arc.Advance_Phase (Story, Human, Mail, "Station");
+      Check (Story.Phase = Arc.Dock, "Advance to Dock");
+      Check (Story.Exterior.Pressure_kPa = 0, "Dock exterior vacuum");
+      Check (Story.Cabin.Pressure_kPa = 101, "Dock cabin station bands");
+      Check (Atm.O2_Partial_kPa (Story.Cabin) = 21, "Dock cabin O2p");
+      Check (Story.Micro_G, "Dock micro-g");
+      Check (Atm.Vacuum_Exterior_Air.Pressure_kPa = 0, "Vacuum profile P=0");
+      Check (Story.Exterior.Pressure_kPa /= Mars.Pressure_kPa, "Dock not Mars surface");
+      Check (Story.Exterior.Pressure_kPa /= Titan.Pressure_kPa, "Dock not Titan surface");
+
+      Msg.Push_Watchdog
+        (Mail, Msg.Alert, "Test ALERT", "Watchdog ALERT after STORY.");
+      Slot := Msg.Active_Slot (Mail, 1);
+      Check (Slot /= 0, "Active after ALERT");
+      M := Msg.Get (Mail, Slot);
+      Check (M.Kind = Msg.Alert, "ALERT above STORY");
+
+      Arc.Advance_Phase (Story, Human, Mail, "Station");
+      Check (Story.Phase = Arc.Dock, "Dock advance no-op");
+   end;
+
 
    TIO.New_Line;
    TIO.Put_Line
