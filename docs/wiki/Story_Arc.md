@@ -1,6 +1,6 @@
 # Story arc — bunker → rocket → station
 
-Lean narrative over **phase→world profile** swaps. Communicator = STORY + systems voice. **ALERT/CAUTION never wait on STORY; STORY never mutates SI.**
+Lean narrative over **phase→world profile** swaps. Passenger is **P** / **Passenger_P**. Communicator = STORY + systems voice. **ALERT/CAUTION never wait on STORY; STORY never mutates SI.**
 
 ## Phases
 

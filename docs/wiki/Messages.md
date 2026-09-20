@@ -25,7 +25,7 @@ Watchdog pushes CAUTION/ALERT from SI. STORY/ANNOUNCEMENT are scripted. GUIDANCE
 
 ## Seeds
 
-**STORY:** Dear Passenger… pleasant flight to and stay at **&lt;Planetname&gt;**.
+**STORY:** Dear P (Passenger_P)… pleasant flight to and stay at **&lt;Planetname&gt;**.
 
 **ANNOUNCEMENT:** We are experiencing technical difficulties. Please observe and follow instructions from flight personnel.
 
