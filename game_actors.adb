@@ -184,27 +184,29 @@ package body Game_Actors is
         (Natural (Pressure_kPa) * Natural (O2_Percent)) / 100;
       Shift   : Integer := 0;
    begin
-      --  CO2 danger rises before O2 runs out (Physical_Data).
-      if CO2_Percent > 2 then
+      --  CO2 partial ladder (lean % at ~101 kPa ≈ kPa): CAUTION >=1%, FAIL >=3%.
+      if CO2_Percent >= 3 then
          Shift := Shift - Integer (CO2_Percent);
+      elsif CO2_Percent >= 1 then
+         Shift := Shift - 1;
       end if;
 
       if Partial < 16 then
-         --  Hypoxia scales with how far below the safe band.
+         --  FAIL-class hypoxia: only below 16 kPa O2-partial (DS SI).
          Shift := Shift - (16 - Integer (Partial));
          if Partial <= 4 then
-            --  Storm exterior ~4 kPa: severe, unsurvivable without cabin/suit.
             Shift := Shift - 10;
          end if;
       elsif O2_Percent >= 95 and then Pressure_kPa >= 25 then
-         --  Sealed EVA pure-O2 loop (~29.6 kPa EMU): treat as safe supply.
-         if CO2_Percent <= 2 then
+         --  Sealed EVA pure-O2 loop (~29.6 kPa EMU): NOMINAL supply.
+         if CO2_Percent < 1 then
             Shift := Shift + 1;
          end if;
-      elsif Partial > 24 then
-         Shift := Shift - (Integer (Partial) - 24);
-      elsif CO2_Percent <= 2 then
-         --  In 16..24 kPa Earth-air band with low CO2: slow recovery.
+      elsif Partial > 30 then
+         --  Cabin allow ~19-30 kPa; only soft drain above 30 (not FAIL at >24).
+         Shift := Shift - (Integer (Partial) - 30);
+      elsif CO2_Percent < 1 then
+         --  >=16 kPa (incl. 16..30) with low CO2: slow recovery.
          Shift := Shift + 1;
       end if;
 
