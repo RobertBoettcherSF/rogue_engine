@@ -1,39 +1,24 @@
-# Packages (Ada 2022)
+# Packages (Ada 2022) — synced to main
 
-| Package | Role |
-|---------|------|
-| `Game_Grid` | Points, terrain, 24×24 chunks, Chebyshev distance, LOS |
-| `Game_Actors` | `Human_Actor` (O₂, hunger/thirst/fatigue, sleep, autopilot breathe) · `Robot_Actor` (power/hull/thermal) · AP · adjacent move |
-| `Game_Items` | Backpack load; container hull+content; Sip/Bite consumables; can opener / drill / process; plasma breach |
-| `Game_Dream_RSI` | Discovery tree; replay sim; improve exploration policy; redeploy |
-| `Game_Environment` | Bunker depth, airlock, outdoor storm, satellite frame, aurora |
-| `Game_Atmosphere` | Tile atmosphere; O₂-partial = P×O₂%; cabin vs storm exterior |
-| `Game_Turn` | Turn / wall-minute clock; AP grant; walk cost |
-| `Game_Demo` | Demo harness: walk, eat/drink, tick breathe, sleep/dream, remote Strider |
-| `Game_ECLSS` | Cabin ECLSS tick (Ops-locked metabolic/scrubber/OGA); SPARK FUTURE candidate |
-| `Game_Suit` | EVA EMU 145 kg `Mass_Kilograms` worn (not Strength); 29.6 kPa/100% O2 healthy; Orlan alt |
-| `Game_Strider` | Vehicle `Mass_Kilograms` / kW; full-class wiki constants; demo chassis 5e4 kg |
-| `Game_Ops_Room` | 5×4 @ 1 m, per-tile height, ~44 m³ air |
-| `Game_Scenario` | Starts; `Linked_Outdoor_Role` includes **Strider** |
+**Ada-only this phase** (through production screenshots). SPARK L2–L4 = labels / FUTURE prove — no `gnatprove` required now.
 
-## Game_Ops_Room
-5×4 @ 1 m tiles (~20 m²), every cell has `Height` (cm). Center console island + operator seat + airlock door cell. Air volume ~44 m³.
+| Package | On main | Role | Proof label |
+|---------|---------|------|-------------|
+| `Game_Grid` | yes | Points, terrain, chunks, LOS | L2–L4 candidate |
+| `Game_Actors` | yes | Human (O2, hunger/thirst/fatigue, sleep, breathe, G_Load/Vision) · Robot · AP | L2–L4 (breathe) |
+| `Game_Items` | yes | Mass, containers, Sip/Bite, tools, plasma | L2–L4 if life-critical |
+| `Game_Dream_RSI` | yes | Explore→Construct→Dream→Redeploy | L2–L4 candidate |
+| `Game_Environment` | yes | Bunker depth, airlock, storm, satellite, aurora | L2–L4 (airlock) |
+| `Game_Atmosphere` | yes | Tile air; O2-partial = P×O2%; cabin vs exterior | L2–L4 candidate |
+| `Game_Turn` | yes | Turn / wall-minute clock; AP grant; walk cost | L2–L4 candidate |
+| `Game_Ops_Room` | yes | 5×4 @ 1 m, heights, ~44 m3 | L2–L4 candidate |
+| `Game_Scenario` | yes | Starts; linked outdoor **Strider** | L2–L4 candidate |
+| `Game_Strider` | yes | Vehicle kg/kW; full + demo chassis; remote link | L2–L4 (strider-link) |
+| `Game_Suit` | yes | EMU 145 kg worn; 29.6 kPa O2; Orlan alt | L2–L4 (suit) |
+| `Game_ECLSS` | yes | Cabin scrubber / O2 make-up tick | L2–L4 (ECLSS) |
+| `Game_Demo` | yes | Walk, eat/drink, breathe, sleep/dream, strider | L2–L4 candidate |
+| `Game_Passenger_Board` | yes | Passenger summary: cabin OK, g, MET, P, O2/CO2; dim vision | L2–L4 candidate |
 
-## Game_Scenario
-`Load_Scenario` / `Apply_Start` for `Bunker_Rover_Storm` (default outdoor **Strider**) and `Titan_Flight_Control`. See [Scenario](Scenario.md) and [Strider](Strider.md).
+Also: `play.adb`, `tests.adb`, `tests_ops_scenario.adb`.
 
-
-## SPARK assurance ladder
-
-**Ada-only this phase.** SPARK L2–L4 proof is **FUTURE**. Packages are labeled for later climb; do **not** run or require `gnatprove` yet. Ada `Pre`/`Post`/`Global` contracts remain as documentation.
-
-**FUTURE L2–L4 candidates** (comments in `.ads` only):
-
-| Package | Why |
-|---------|-----|
-| `Game_Actors` (breathe) | Tissue O2 / hypoxia |
-| `Game_Suit` | Seal, suit O2-partial, life support |
-| `Game_Environment` (airlock) | Both-open forbidden |
-| `Game_ECLSS` | Cabin scrubber / O2 make-up |
-| `Game_Strider` | Payload trivial / mass class |
-| `Game_Items` (containment/plasma) | If life-critical path |
+Facts: [Physical_Data](Physical_Data.md) · Units: [SI_Units](SI_Units.md) · Demo: [Demo](Demo.md) · Strider: [Strider](Strider.md) · Passenger: [Passenger_Board](Passenger_Board.md) · Proof: [Proof](Proof.md)
