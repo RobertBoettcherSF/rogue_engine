@@ -1,38 +1,35 @@
-# DEMO / UI Spec addendum: passenger board computer
+# Passenger board computer
 
-Status: Spec ready (Ada phase; no screenshots until 50%).
+Calm passenger summary — not pilot glass. Ada phase; no screenshots until 50%.
 
-Passenger-facing **board computer** = calm summary panel for someone who may be under high-g / low `Vision_Clarity` — **not** the pilot full glass (no engine mix, guidance loops, or dense telemetry).
+## Pressure display
 
-## Passenger summary (meta values)
+Ada SoT remains **absolute kPa**. Board may also show **Atm_Fraction 0.00…1.00** with **1.00 = Earth (~101 kPa)**.
 
-Prefer few large lines; non-critical lines drop first when `Vision_Clarity` is low (~20% readable).
+| Band | Atm_Fraction | Meaning |
+|------|--------------|--------|
+| Cabin **green** (total P) | **0.90–1.10** | Near Earth; still check O2 |
+| Mars-thin storm | **~0.20** | Red for unsuited lungs |
+| EMU suit absolute | **~0.29** | OK if pure O2 loop |
+| Vacuum | **0.00** | No negative |
 
-| Priority | Readout | Typed source |
-|----------|---------|--------------|
-| 1 (always try) | **Cabin status** OK / CAUTION / FAIL | ECLSS + cabin P/O2/CO2 vs bands |
-| 1 | **Warnings** (red push) | alarm queue |
-| 1 | **G / Thrust** (current g) | `G_Load` / `Thrust_g` |
-| 2 | **Mission clock / MET** | sim clock |
-| 2 | **Cabin P (kPa)** | cabin absolute pressure |
-| 2 | **O2 / CO2 state** (simple OK or %) | partial pressures |
-| 3 | **Time to next event** (burn end, staging, dock) | scenario timeline |
-| 3 | **ΔP cabin→outside** (if known) | hull sensors |
-| drop first under dim | Detailed ECLSS rates, power bus, fuel %, attitude | pilot glass only |
+First passenger line: **cabin air OK?** (P in green band + enough O2).
 
-## Vision_Clarity from G_Load (Ops+DS lock)
+## Meta readouts
 
-Units: g as ×g0 (`G_Load` tenths: 10 = 1.0 g); MET in seconds; P in kPa; O2/CO2 as partial kPa or %.
+| Priority | Readout |
+|----------|--------|
+| 1 | Cabin OK / CAUTION / FAIL |
+| 1 | Red warnings (push) |
+| 1 | Current g |
+| 2 | MET |
+| 2 | Cabin P (kPa and/or Atm_Fraction) |
+| 2 | O2 / CO2 simple OK or % |
+| 3 | Time to next event; ΔP outside |
+| drop first when dim | Fuel %, attitude, dense ECLSS rates |
 
-| G_Load | Vision_Clarity | Notes |
-|--------|----------------|-------|
-| ≤ ~3 g (≤30 tenths) | **100** clear | Soft coast / mild |
-| ~3.5–4.5 g (35–45) | **~40** tunnel/grey | Peripheral loss |
-| ~5 g (~50) | **~20** readable | Heavy dim; dense lines drop |
-| > ~5 g (≥55) | **0** blackout | No voluntary glance |
+## Vision from G
 
-Suited passenger: cuff stays suit-loop; board computer still shows **cabin** meta (are we holding?) unless Spec says vehicle is unpressurized.
+≤~3 g clear → ~3.5–4.5 tunnel → ~5 g ~20% → blackout. Keep priority-1; garble 2–3; red still pushes.
 
-Near-blackout: keep priority-1 lines; garble/omit 2–3; red warnings still push without a glance.
-
-See also wrist rules in [Physical_Data.md](Physical_Data.md).
+See [Physical_Data.md](Physical_Data.md).
