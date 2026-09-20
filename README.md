@@ -19,22 +19,22 @@ Built step by step as strongly typed modules with contracts and a growing embedd
 |------|---------|--------|
 | 1 | `Game_Grid` | Points, terrain, 24×24 chunks, Chebyshev distance, LOS blocking |
 | 2 | `Game_Actors` | Tagged actors, AP, health, adjacent `Move_To` |
-| 3 | `Game_Items` | Backpack load; hull+content mass; temps °C; seal→access; plasma rupture = game over; 5/10 kg carry |
+| 3 | `Game_Items` | Backpack load; hull+content mass; temps °C; seal→access; can opener + drill sample + process; plasma rupture = game over; 5/10 kg carry |
 | Next | Turn clock | Priority queue / AP tick scheduling |
 
-**Tests:** `make test` — currently **66** assertions (Game_Grid + Game_Actors + Game_Items containers), zero warnings under `-gnatwa`.
+**Tests:** `make test` — currently **76** assertions (Game_Grid + Game_Actors + Game_Items containers), zero warnings under `-gnatwa`.
 
 ## Architecture (planned)
 
 ```
-┌───────────────────────────────────────────┐
+┌──────────────────────────────────────────────┐
 │  Front end (ASCII → 32px tiles → sprites)   │
-├───────────────────────────────────────────┤
+├──────────────────────────────────────────────┤
 │  Content schemas (JSON/TOML) + wiki lint    │
-├───────────────────────────────────────────┤
+├──────────────────────────────────────────────┤
 │  Ada sim core (SPARK-friendly packages)     │
 │  Game_Grid · Game_Actors · Weight · …       │
-└───────────────────────────────────────────┘
+└──────────────────────────────────────────────┘
 ```
 
 Wiki pages should be generated or linted from the same schemas so lore cannot drift from game data.

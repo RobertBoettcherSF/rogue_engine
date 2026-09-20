@@ -73,7 +73,7 @@ package Game_Items is
       Slots : Container_Array :=
         [others =>
            (Hull_Mass        => 0,
-            Integrity        => 100,
+            Integrity         => 100,
             Hull_Temp_C      => 20,
             Content_State    => Solid,
             Content_Mass     => 0,
@@ -89,6 +89,9 @@ package Game_Items is
    Hull_Ruptured_Error      : exception;
    Content_Sealed_Error     : exception;  -- hull still too intact to open
    Plasma_Containment_Lost  : exception;  -- ruptured plasma => game over
+   Wrong_Matter_State_Error : exception;  -- drill/sample expects Solid (etc.)
+   Sample_Empty_Error       : exception;  -- nothing left to sample
+   Already_Open_Error       : exception;  -- can opener on already-open can
 
    function Comfortable_Capacity_G
      (Strength : Strength_Level) return Mass_Grams
@@ -232,5 +235,42 @@ package Game_Items is
    --  After Damage_Hull, call to enforce plasma rupture = game over.
    procedure Check_Containment (C : Container)
    with Global => null;
+
+   --  Field sample taken from solid content (rover core / scoop).
+   type Sample is record
+      Mass     : Mass_Grams      := 0;
+      State    : Matter_State    := Solid;
+      Temp_C   : Celsius_Degrees := 20;
+      Refined  : Boolean         := False;
+   end record;
+
+   --  Controlled open: lowers hull to Access_Integrity_Threshold without
+   --  rupturing (like a can opener). Does not work on already-open or
+   --  ruptured containers.
+   procedure Open_With_Can_Opener (C : in out Container)
+   with
+     Global => null,
+     Post   =>
+       C.Integrity = Access_Integrity_Threshold
+       and then Can_Access_Content (C);
+
+   --  Drill into solid content and extract a sample of up to Requested grams.
+   --  If still sealed, the drill pierces the hull to the access threshold first.
+   --  Reduces Content_Mass by the sampled amount. Raises Wrong_Matter_State_Error
+   --  unless Content_State = Solid; Sample_Empty_Error if no content mass.
+   procedure Drill_Sample
+     (C         : in out Container;
+      Requested : Mass_Grams;
+      Out_Sample : out Sample)
+   with
+     Global => null,
+     Pre    => Requested > 0;
+
+   --  Process / refine a sample (crush & analyze). Fun, not a chemistry sim.
+   procedure Process_Sample (S : in out Sample)
+   with
+     Global => null,
+     Pre    => S.Mass > 0,
+     Post   => S.Refined;
 
 end Game_Items;

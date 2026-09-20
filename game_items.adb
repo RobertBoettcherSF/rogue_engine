@@ -142,11 +142,11 @@ package body Game_Items is
       Pack.Slots (Pack.Count) :=
         (Hull_Mass        => 0,
          Integrity         => 100,
-         Hull_Temp_C      => 20,
-         Content_State    => Solid,
-         Content_Mass     => 0,
-         Content_Capacity => 0,
-         Content_Temp_C   => 20);
+         Hull_Temp_C       => 20,
+         Content_State     => Solid,
+         Content_Mass      => 0,
+         Content_Capacity  => 0,
+         Content_Temp_C    => 20);
       Pack.Count := Pack.Count - 1;
    end Remove_Last;
 
@@ -210,5 +210,64 @@ package body Game_Items is
          raise Plasma_Containment_Lost;
       end if;
    end Check_Containment;
+
+   procedure Open_With_Can_Opener (C : in out Container) is
+   begin
+      if C.Integrity = 0 then
+         raise Hull_Ruptured_Error;
+      end if;
+      if Can_Access_Content (C) then
+         raise Already_Open_Error;
+      end if;
+      --  Controlled lid cut: stop at access threshold (never auto-rupture).
+      C.Integrity := Access_Integrity_Threshold;
+   end Open_With_Can_Opener;
+
+   procedure Drill_Sample
+     (C          : in out Container;
+      Requested  : Mass_Grams;
+      Out_Sample : out Sample)
+   is
+      Taken : Mass_Grams;
+   begin
+      if C.Content_State /= Solid then
+         raise Wrong_Matter_State_Error;
+      end if;
+      if C.Content_Mass = 0 then
+         raise Sample_Empty_Error;
+      end if;
+      if C.Integrity = 0 then
+         if Is_Plasma_Catastrophe (C) then
+            raise Plasma_Containment_Lost;
+         end if;
+         raise Hull_Ruptured_Error;
+      end if;
+
+      --  Pierce sealed hull like a rover drill collar.
+      if not Can_Access_Content (C) then
+         C.Integrity := Access_Integrity_Threshold;
+      end if;
+
+      if Requested >= C.Content_Mass then
+         Taken := C.Content_Mass;
+      else
+         Taken := Requested;
+      end if;
+
+      Out_Sample :=
+        (Mass    => Taken,
+         State   => Solid,
+         Temp_C  => C.Content_Temp_C,
+         Refined => False);
+      C.Content_Mass := C.Content_Mass - Taken;
+   end Drill_Sample;
+
+   procedure Process_Sample (S : in out Sample) is
+   begin
+      if S.Mass = 0 then
+         raise Sample_Empty_Error;
+      end if;
+      S.Refined := True;
+   end Process_Sample;
 
 end Game_Items;

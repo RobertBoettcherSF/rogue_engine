@@ -380,6 +380,63 @@ begin
          end;
          Check (Boom, "Check_Containment raises Plasma_Containment_Lost (game over)");
       end;
+
+      --  Can opener + drill sample + process (rover loop)
+      declare
+         Rock_Can : I.Container :=
+           I.Make_Container
+             (Hull_Mass        => 400,
+              Integrity        => 100,
+              Hull_Temp_C      => 10,
+              Content_State    => I.Solid,
+              Content_Mass     => 2_000,
+              Content_Capacity => 3_000,
+              Content_Temp_C   => 5);
+         Chip    : I.Sample;
+         Raised  : Boolean;
+      begin
+         Check (not I.Can_Access_Content (Rock_Can), "Rock can starts sealed");
+         I.Open_With_Can_Opener (Rock_Can);
+         Check
+           (Rock_Can.Integrity = I.Access_Integrity_Threshold,
+            "Can opener sets integrity to access threshold");
+         Check (I.Can_Access_Content (Rock_Can), "Can opener opens sealed can");
+
+         Raised := False;
+         begin
+            I.Open_With_Can_Opener (Rock_Can);
+         exception
+            when I.Already_Open_Error =>
+               Raised := True;
+         end;
+         Check (Raised, "Second can-opener use raises Already_Open_Error");
+
+         I.Drill_Sample (Rock_Can, Requested => 250, Out_Sample => Chip);
+         Check (Chip.Mass = 250, "Drill takes 250 g sample");
+         Check (Chip.State = I.Solid, "Sample state is Solid");
+         Check (not Chip.Refined, "Fresh sample is not refined");
+         Check
+           (Rock_Can.Content_Mass = 1_750,
+            "Drill reduces remaining solid content");
+
+         I.Process_Sample (Chip);
+         Check (Chip.Refined, "Process_Sample marks sample refined");
+
+         --  Drill refuses liquid without opening-as-solid
+         Raised := False;
+         begin
+            declare
+               Dummy : I.Sample;
+               Wet   : I.Container := Water_Can;
+            begin
+               I.Drill_Sample (Wet, 100, Dummy);
+            end;
+         exception
+            when I.Wrong_Matter_State_Error =>
+               Raised := True;
+         end;
+         Check (Raised, "Drill on liquid raises Wrong_Matter_State_Error");
+      end;
    end;
 
 
