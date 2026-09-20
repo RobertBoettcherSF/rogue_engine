@@ -7,18 +7,28 @@ with Ada.Text_IO;
 with Game_Atmosphere;
 with Game_Demo;
 with Game_Grid;
+with Game_Passenger_Board;
 with Game_Scenario;
 
 --  Thin try-local demo: bunker seat + remote Strider + eat/drink/sleep.
+--  Passenger board dump is plain Ada text this phase (SI under the hood).
+--  FUTURE color (not landed): NOMINAL=green ANNOUNCEMENT=yellow
+--  CAUTION=orange FAIL=red — see Game_Passenger_Board.
 procedure Play is
    package TIO renames Ada.Text_IO;
    package D renames Game_Demo;
    package G renames Game_Grid;
    package Atm renames Game_Atmosphere;
+   package Pb renames Game_Passenger_Board;
    State : D.Demo_State;
+   Panel : Pb.Passenger_Board;
 begin
    TIO.Put_Line ("rogue_engine demo — ops room + remote Strider");
    D.Start_Demo (State);
+
+   Panel := D.Passenger_Panel (State);
+   Pb.Put_Text_Dump (Panel);
+
    TIO.Put_Line
      ("Human at ops seat ("
       & G.Coordinate'Image (State.Human.Position.X)
@@ -67,5 +77,9 @@ begin
       & Natural'Image (Natural (State.Human.Oxygenation))
       & " policy_w="
       & Float'Image (State.Policy.Exploration_Weight));
+
+   Panel := D.Passenger_Panel (State);
+   Pb.Put_Text_Dump (Panel);
+
    TIO.Put_Line ("Demo sequence OK.");
 end Play;

@@ -3,6 +3,8 @@
 
 pragma Ada_2022;
 
+with Ada.Text_IO;
+
 package body Game_Passenger_Board is
 
    function Build
@@ -57,5 +59,87 @@ package body Game_Passenger_Board is
 
       return Board;
    end Build;
+
+   function Status_Label (Kind : Cabin_Status_Kind) return String is
+   begin
+      case Kind is
+         when OK =>
+            return "NOMINAL";  -- FUTURE color: green
+         when Caution =>
+            return "CAUTION";  -- FUTURE color: orange
+         when Fail =>
+            return "FAIL";     -- FUTURE color: red
+      end case;
+   end Status_Label;
+
+   function Atm_Fraction_Hundredths (Cabin_P_kPa : Natural) return Natural is
+   begin
+      if Cabin_P_kPa = Unreadable_Sentinel then
+         return Unreadable_Sentinel;
+      end if;
+      return (Cabin_P_kPa * 100) / Earth_Reference_kPa;
+   end Atm_Fraction_Hundredths;
+
+   --  Trim leading blank from 'Image.
+   function Img (N : Natural) return String is
+      S : constant String := Natural'Image (N);
+   begin
+      if S'Length > 0 and then S (S'First) = ' ' then
+         return S (S'First + 1 .. S'Last);
+      end if;
+      return S;
+   end Img;
+
+   function Atm_Frac_Text (Hundredths : Natural) return String is
+      Whole : constant Natural := Hundredths / 100;
+      Frac  : constant Natural := Hundredths mod 100;
+   begin
+      if Hundredths = Unreadable_Sentinel then
+         return "----";
+      end if;
+      if Frac < 10 then
+         return Img (Whole) & ".0" & Img (Frac);
+      end if;
+      return Img (Whole) & "." & Img (Frac);
+   end Atm_Frac_Text;
+
+   procedure Put_Text_Dump (Board : Passenger_Board) is
+      package TIO renames Ada.Text_IO;
+      Frac    : constant Natural := Atm_Fraction_Hundredths (Board.Cabin_P_kPa);
+      G_Whole : constant Natural := Natural (Board.Current_G_Tenths) / 10;
+      G_Tenth : constant Natural := Natural (Board.Current_G_Tenths) mod 10;
+   begin
+      --  Plain Ada dump. FUTURE: wrap Status_Label / alarm / announcement
+      --  lines in ANSI (green/yellow/orange/red) that no-ops when TERM=dumb.
+      TIO.Put_Line ("--- passenger board ---");
+      --  ANNOUNCEMENT (FUTURE color: yellow)
+      TIO.Put_Line ("ANNOUNCEMENT: cabin meta panel (plain text)");
+      TIO.Put_Line ("cabin_status=" & Status_Label (Board.Cabin_Status));
+      if Board.Warning_Red then
+         --  Critical alarm (FUTURE color: red)
+         TIO.Put_Line ("ALARM_CRITICAL code=" & Img (Board.Alarm_Code));
+      end if;
+      TIO.Put_Line ("g=" & Img (G_Whole) & "." & Img (G_Tenth));
+      if Board.Priority2_Garbled then
+         TIO.Put_Line ("MET_s=----  cabin_P_kPa=----  atm_frac=----");
+         TIO.Put_Line ("O2_partial_kPa=----  CO2_partial_kPa=----");
+      else
+         TIO.Put_Line ("MET_s=" & Img (Board.MET_Seconds));
+         TIO.Put_Line
+           ("cabin_P_kPa="
+            & Img (Board.Cabin_P_kPa)
+            & "  atm_frac="
+            & Atm_Frac_Text (Frac));
+         TIO.Put_Line
+           ("O2_partial_kPa="
+            & Img (Board.O2_Partial_kPa)
+            & "  CO2_partial_kPa="
+            & Img (Board.CO2_Partial_kPa));
+      end if;
+      if Board.Dense_Dropped then
+         TIO.Put_Line ("(dense ECLSS/fuel/attitude lines dropped)");
+      end if;
+      TIO.Put_Line ("--- end passenger board ---");
+   end Put_Text_Dump;
 
 end Game_Passenger_Board;
