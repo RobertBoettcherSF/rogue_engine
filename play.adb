@@ -12,12 +12,10 @@ with Ada.Integer_Text_IO;
 with Ada.Characters.Latin_1;
 
 with Game_Demo;
-with Game_Grid;
 with Game_Messages;
 with Game_Ops_Room;
 with Game_Passenger_Board;
 with Game_Story_Arc;
-with Game_Atmosphere;
 
 procedure Play is
    package TIO renames Ada.Text_IO;
@@ -63,7 +61,7 @@ procedure Play is
    procedure Put_Map is
       Room : constant Game_Ops_Room.Ops_Room := State.Ops;
    begin
-      TIO.Put_Line ("rogue_engine  @=P  WASD move  M=inbox  n=phase  q=quit");
+      TIO.Put_Line ("rogue_engine  @=P  WASD move  M=msg  n=phase  f=field  q=quit");
       for Y in reverse Game_Ops_Room.Depth_Index loop
          for X in Game_Ops_Room.Width_Index loop
             TIO.Put (Glyph (Room, X, Y));
@@ -123,7 +121,7 @@ procedure Play is
          end loop;
          while I <= Last and then Lines < 4 loop
             Len := Natural'Min (80, Last - I + 1);
-            Text := (others => ' ');
+            Text := [others => ' '];
             Text (1 .. Len) := Pay (I .. I + Len - 1);
             TIO.Put_Line (Text (1 .. Len));
             I := I + Len;
@@ -151,7 +149,7 @@ procedure Play is
       TIO.Put (".");
       IIO.Put (G10 mod 10, Width => 0);
       TIO.Put ("  uSv_h=");
-      IIO.Put (Natural (Arc.Rad_uSv_h), Width => 0);
+      TIO.Put (Game_Story_Arc.Format_Rad (Arc.Rad_uSv_h));
       TIO.Put ("  [");
       TIO.Put (Game_Story_Arc.Rad_Band_Label (Arc.Rad_uSv_h));
       TIO.Put ("]  phase=");
@@ -167,11 +165,11 @@ procedure Play is
       if Rate >= Game_Story_Arc.Rad_Alert_uSv_h then
          Game_Messages.Push_Watchdog
            (Mail, Game_Messages.Alert, "Radiation ALERT",
-            "Dose rate elevated (provisional ALERT). EVA / high-GCR.");
+            "Dose rate elevated (ALERT). EVA / high-GCR.");
       elsif Rate >= Game_Story_Arc.Rad_Caution_uSv_h then
          Game_Messages.Push_Watchdog
            (Mail, Game_Messages.Caution, "Radiation CAUTION",
-            "Dose rate elevated (provisional CAUTION). SAA/GCR vs cabin.");
+            "Dose rate elevated (CAUTION). SAA/GCR vs cabin.");
       end if;
       Last_Rad := Rate;
    end Sync_Rad_Watchdog;
@@ -186,8 +184,8 @@ procedure Play is
    end Draw;
 
    procedure Try_Move (DX, DY : Integer) is
-      NX : Integer := Integer (PX) + DX;
-      NY : Integer := Integer (PY) + DY;
+      NX : constant Integer := Integer (PX) + DX;
+      NY : constant Integer := Integer (PY) + DY;
    begin
       if NX in Game_Ops_Room.Width_Index'Range
         and then NY in Game_Ops_Room.Depth_Index'Range
@@ -227,15 +225,40 @@ begin
             Try_Move (1, 0);
          when 'M' =>
             declare
+               use type Game_Messages.Message_Kind;
                S : constant Natural := Game_Messages.Active_Slot (Mail, 1);
+               M : Game_Messages.Message;
             begin
                if S /= 0 then
+                  M := Game_Messages.Get (Mail, Game_Messages.Slot_Index (S));
+                  if M.Kind = Game_Messages.Alert then
+                     for Pass in 1 .. 2 loop
+                        for I in 1 .. 3 loop
+                           pragma Unreferenced (I);
+                           TIO.Put_Line ("WARNING");
+                           TIO.Flush;
+                           delay 0.08;
+                           TIO.Put_Line ("       ");
+                           TIO.Flush;
+                           delay 0.08;
+                        end loop;
+                        if Pass = 1 then
+                           delay 0.25;
+                        end if;
+                     end loop;
+                  end if;
                   Game_Messages.Mark_Read
                     (Mail, Game_Messages.Slot_Index (S));
                end if;
             end;
          when 'n' | 'N' =>
             Game_Story_Arc.Advance_Phase (Arc, State.Human, Mail, "station");
+         when 'f' | 'F' =>
+            if Arc.G_Load_Tenths = 0 then
+               Game_Story_Arc.Set_Force_Field (Arc, State.Human, 10);
+            else
+               Game_Story_Arc.Set_Force_Field (Arc, State.Human, 0);
+            end if;
          when others =>
             null;
       end case;
