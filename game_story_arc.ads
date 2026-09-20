@@ -8,7 +8,6 @@ with Game_Atmosphere;
 with Game_Messages;
 
 --  Lean Story_Arc: phase→profile. Passenger_P (P). STORY never mutates SI.
---  Step: phase / exterior vacuum / rad. Lerp: g + cabin CO2 (ascent/coast).
 package Game_Story_Arc is
 
    Passenger_P_Name : constant String := "Passenger_P";
@@ -18,12 +17,13 @@ package Game_Story_Arc is
    Ascent_Peak_G_Tenths : constant Game_Actors.G_Load_Tenths := 35;
    Ascent_Lerp_Ticks    : constant Positive := 5;
 
+   --  Live µSv/h (Physical_Data). Cabin 0 → Format_Rad "0.1". L2–L4 candidate.
    subtype Dose_Rate_uSv_h is Natural;
-   Cabin_Rad_uSv_h    : constant Dose_Rate_uSv_h := 1;
-   Ascent_SAA_uSv_h   : constant Dose_Rate_uSv_h := 80;
-   Coast_GCR_uSv_h    : constant Dose_Rate_uSv_h := 120;
+   Cabin_Rad_uSv_h    : constant Dose_Rate_uSv_h := 0;
+   Ascent_SAA_uSv_h   : constant Dose_Rate_uSv_h := 30;
+   Coast_GCR_uSv_h    : constant Dose_Rate_uSv_h := 75;
    Dock_EVA_Rad_uSv_h : constant Dose_Rate_uSv_h := 500;
-   Rad_Caution_uSv_h  : constant Dose_Rate_uSv_h := 50;
+   Rad_Caution_uSv_h  : constant Dose_Rate_uSv_h := 10;
    Rad_Alert_uSv_h    : constant Dose_Rate_uSv_h := 200;
 
    type Arc_State is record
@@ -41,6 +41,10 @@ package Game_Story_Arc is
    function Phase_Name (P : Story_Phase) return String with Global => null;
    function Profile_For (P : Story_Phase) return Arc_State with Global => null;
    function Rad_Band_Label (Rate : Dose_Rate_uSv_h) return String with Global => null;
+   function Format_Rad (Rate : Dose_Rate_uSv_h) return String with Global => null;
+   procedure Set_Force_Field
+     (Arc : in out Arc_State; Human : in out Game_Actors.Human_Actor;
+      Target_G_Tenths : Game_Actors.G_Load_Tenths) with Global => null;
 
    procedure Start_Arc
      (Arc : out Arc_State; Human : in out Game_Actors.Human_Actor;
