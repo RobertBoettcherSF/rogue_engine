@@ -14,6 +14,7 @@ with Ada.Characters.Latin_1;
 with Game_Demo;
 with Game_Messages;
 with Game_Ops_Room;
+with Game_Environment;
 with Game_Passenger_Board;
 with Game_Story_Arc;
 
@@ -21,13 +22,14 @@ procedure Play is
    package TIO renames Ada.Text_IO;
    package IIO renames Ada.Integer_Text_IO;
    use type Game_Ops_Room.Cell_Kind;
+   use type Game_Environment.Door_State;
 
    ESC : constant Character := Ada.Characters.Latin_1.ESC;
 
    State : Game_Demo.Demo_State;
    Arc   : Game_Story_Arc.Arc_State;
    Mail  : Game_Messages.Inbox;
-   PX    : Game_Ops_Room.Width_Index := 3;
+   PX    : Game_Ops_Room.Width_Index := 2;
    PY    : Game_Ops_Room.Depth_Index := 3;
    Key   : Character;
    Done  : Boolean := False;
@@ -39,7 +41,7 @@ procedure Play is
       TIO.Put (ESC & "[2J" & ESC & "[H");
    end Clear_Frame;
 
-   function Glyph
+   function Cell_Glyph
      (Room : Game_Ops_Room.Ops_Room;
       X    : Game_Ops_Room.Width_Index;
       Y    : Game_Ops_Room.Depth_Index) return Character
@@ -50,13 +52,23 @@ procedure Play is
          return '@';
       end if;
       case C.Kind is
-         when Game_Ops_Room.Wall => return '#';
-         when Game_Ops_Room.Floor => return '.';
-         when Game_Ops_Room.Console_Island => return '=';
-         when Game_Ops_Room.Operator_Seat => return 'h';
-         when Game_Ops_Room.Airlock_Door => return '+';
+         when Game_Ops_Room.Wall =>
+            return '#';
+         when Game_Ops_Room.Floor =>
+            return '.';
+         when Game_Ops_Room.Console_Island =>
+            return '=';
+         when Game_Ops_Room.Operator_Seat =>
+            return 'h';
+         when Game_Ops_Room.Airlock_Door =>
+            --  Bunker-side airlock leaf: + closed, . open
+            if State.Lock.Inner = Game_Environment.Open then
+               return '.';
+            else
+               return '+';
+            end if;
       end case;
-   end Glyph;
+   end Cell_Glyph;
 
    procedure Put_Map is
       Room : constant Game_Ops_Room.Ops_Room := State.Ops;
@@ -64,7 +76,7 @@ procedure Play is
       TIO.Put_Line ("rogue_engine  @=P  WASD move  M=msg  n=phase  f=field  q=quit");
       for Y in reverse Game_Ops_Room.Depth_Index loop
          for X in Game_Ops_Room.Width_Index loop
-            TIO.Put (Glyph (Room, X, Y));
+            TIO.Put (Cell_Glyph (Room, X, Y));
          end loop;
          TIO.New_Line;
       end loop;
