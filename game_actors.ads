@@ -1,31 +1,13 @@
 --  SPDX-License-Identifier: MIT
 --  Copyright (c) 2026 Robert Boettcher
---
---  Permission is hereby granted, free of charge, to any person obtaining a copy
---  of this software and associated documentation files (the "Software"), to deal
---  in the Software without restriction, including without limitation the rights
---  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
---  copies of the Software, and to permit persons to whom the Software is
---  furnished to do so, subject to the following conditions:
---
---  The above copyright notice and this permission notice shall be included in
---  all copies or substantial portions of the Software.
---
---  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
---  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
---  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
---  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
---  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
---  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
---  SOFTWARE.
 
 pragma Ada_2022;
 
 with Game_Grid;
 
 --  Twofold cast:
---    Human — stays in a small sealed bunker; vitality = tissue oxygenation.
---    Robot — works outdoors; vitality = power / hull / thermal (no lungs).
+--    Human -- stays in a small sealed bunker; vitality = tissue oxygenation.
+--    Robot -- works outdoors; vitality = power / hull / thermal (no lungs).
 package Game_Actors is
    use type Game_Grid.Point;
 
@@ -45,6 +27,8 @@ package Game_Actors is
    subtype Percent is Natural range 0 .. 100;
    subtype Room_Pressure_kPa is Natural range 0 .. 200;
 
+   --  Defaults preview Tiangong-like cabin (DS propose): ~101 kPa, ~21 kPa O2-partial.
+   --  Full band / CO2 kPa / RH / scrubber await Ops Physical_Data lock.
    type Bunker_Room is record
       O2_Percent     : Percent := 21;
       CO2_Percent    : Percent := 0;
@@ -52,11 +36,18 @@ package Game_Actors is
       Volume_Liters  : Positive := 20_000;  -- ~ small shelter room
    end record;
 
+   --  Demo vitals: hunger/thirst/fatigue are game scalars 0..100.
+   subtype Vital_Percent is Natural range 0 .. 100;
+
    type Human_Actor is record
       Position     : Game_Grid.Point := (X => 0, Y => 0);
       Speed        : Speed_Value := 1;
       AP           : Action_Points := 0;
       Oxygenation  : Tissue_Oxygenation := 100;
+      Hunger       : Vital_Percent := 40;
+      Thirst       : Vital_Percent := 40;
+      Fatigue      : Vital_Percent := 60;
+      Sleeping     : Boolean := False;
    end record;
 
    --  ----- Robot (outdoors) -----
@@ -77,7 +68,8 @@ package Game_Actors is
       Thermal  : Thermal_C := 20;
    end record;
 
-   Invalid_Move : exception;
+   Invalid_Move  : exception;
+   Asleep_Error  : exception;
 
    function Human_Status (Self : Human_Actor) return Human_Condition
    with Global => null;
@@ -95,7 +87,11 @@ package Game_Actors is
        Self.Position = Location
        and then Self.Speed = Speed
        and then Self.AP = 0
-       and then Self.Oxygenation = 100;
+       and then Self.Oxygenation = 100
+       and then Self.Hunger = 40
+       and then Self.Thirst = 40
+       and then Self.Fatigue = 60
+       and then Self.Sleeping = False;
 
    --  Compat alias used by older tests / Step 2 call sites.
    procedure Initialize
@@ -132,11 +128,47 @@ package Game_Actors is
       Amount : Integer)
    with Global => null;
 
-   --  Tick bunker air → shift human oxygenation (simple sealed-room model).
+   procedure Adjust_Hunger
+     (Self   : in out Human_Actor;
+      Amount : Integer)
+   with Global => null;
+
+   procedure Adjust_Thirst
+     (Self   : in out Human_Actor;
+      Amount : Integer)
+   with Global => null;
+
+   procedure Adjust_Fatigue
+     (Self   : in out Human_Actor;
+      Amount : Integer)
+   with Global => null;
+
+   --  Tick bunker air -> shift human oxygenation (simple sealed-room model).
    procedure Breathe_In_Bunker
      (Self : in out Human_Actor;
       Room : Bunker_Room)
    with Global => null;
+
+   --  Autopilot breathe from current tile/room cell atmosphere (Demo Spec).
+   --  Effective O2 = P(kPa) * O2% / 100. Drop tissue O2 when product leaves
+   --  16..24 kPa band, or when CO2% climbs first. No manual breathe command.
+   --  Sleeping uses lower O2 draw (metabolic); hypoxia rules still apply.
+   procedure Autopilot_Breathe
+     (Self         : in out Human_Actor;
+      O2_Percent   : Percent;
+      CO2_Percent  : Percent;
+      Pressure_kPa : Room_Pressure_kPa)
+   with Global => null;
+
+   procedure Begin_Sleep (Self : in out Human_Actor)
+   with
+     Global => null,
+     Post   => Self.Sleeping;
+
+   procedure Wake (Self : in out Human_Actor)
+   with
+     Global => null,
+     Post   => not Self.Sleeping;
 
    procedure Adjust_Power
      (Self   : in out Robot_Actor;
@@ -158,7 +190,9 @@ package Game_Actors is
    procedure Move_To
      (Self        : in out Human_Actor;
       Destination : Game_Grid.Point)
-   with Global => null;
+   with
+     Global => null,
+     Pre    => not Self.Sleeping;
 
    procedure Move_To
      (Self        : in out Robot_Actor;
