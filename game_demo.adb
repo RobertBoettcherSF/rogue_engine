@@ -109,7 +109,24 @@ package body Game_Demo is
    function Passenger_Panel
      (State : Demo_State) return Game_Passenger_Board.Passenger_Board
    is
+      use type Game_Environment.Door_State;
+      Human : Game_Actors.Human_Actor := State.Human;
+      Board : Game_Passenger_Board.Passenger_Board;
+      Air   : Game_Atmosphere.Tile_Atmosphere;
    begin
+      if State.Lock.Outer = Game_Environment.Open then
+         Human.G_Load := State.Surface_G_Tenths;
+         Air := State.Exterior_Air;
+         Board := Game_Passenger_Board.Build
+           (Cabin => Air,
+            Human => Human,
+            Clock => State.Clock,
+            Alarm => State.Last_Alarm_Code);
+         if Game_Suit.Is_Sealed_For_EVA (State.Suit) then
+            Board.Cabin_Status := Game_Passenger_Board.OK;
+         end if;
+         return Board;
+      end if;
       return Game_Passenger_Board.Build
         (Cabin => State.Cabin_Air,
          Human => State.Human,
@@ -173,6 +190,7 @@ package body Game_Demo is
       State.Cabin_Air :=
         Game_Atmosphere.From_Bunker_Room (Cfg.Ops.Air, Game_Atmosphere.Cabin);
       State.Exterior_Air := Game_Scenario.Exterior_Air (Cfg.Atmosphere);
+      State.Surface_G_Tenths := Cfg.Surface_G_Tenths;
       State.Human_Zone := Game_Atmosphere.Cabin;
       State.Suit := Game_Suit.Make_EMU;
       State.Lock := Cfg.Lock;
@@ -411,6 +429,12 @@ package body Game_Demo is
       Game_Suit.Doff_Helmet (State.Suit);
       Autopilot_Human (State);
    end Doff_Helmet;
+
+   procedure Doff_EVA (State : in out Demo_State) is
+   begin
+      Game_Suit.Doff_Suit (State.Suit);
+      Autopilot_Human (State);
+   end Doff_EVA;
 
    procedure Exit_To_Storm (State : in out Demo_State) is
    begin
