@@ -52,6 +52,41 @@ Default play profile: **ISS EMU-class**. Orlan-class is an alternate profile. He
 4. Tile air only when helmet unlocked indoors.
 5. Life-support timer: primary → emergency reserve → hypoxia.
 
+### Wrist / cuff terminal (display layer)
+
+Thin UI over existing typed state — **no new physics**. Demo v0 readouts when suited:
+
+| Readout | Source state |
+|---------|--------------|
+| Suit pressure (kPa) | suit loop absolute P |
+| O2 time remaining (primary + reserve) | life-support timers |
+| CO2 / caution flags | suit or cabin CO2 vs limits |
+| Thermal (C or K) | suit / robot thermal |
+| Battery / power % | PLSS / suit power |
+| Seal status (helmet, gloves, zipper) | sealed flags |
+| Tissue O2 % | human actor vitality |
+
+Out of scope until Spec: ECG, SpO2 optics, continuous biomed beyond tissue O2.
+
+---
+
+## Tiangong-class station cabin (optional profile)
+
+Same breathe spine (P / O2% / CO2% / volume → tissue O2). Framework yes; full twin needs scrubber rates + richer vitals.
+
+| Quantity | Locked intent | Notes |
+|----------|---------------|-------|
+| Station pressurised / habitable | **~340 / ~122 m3** | Public CSS figures |
+| Tianhe pressurised / habitable | **~113 / ~50–51 m3** | Core module |
+| Gas mix | O2/N2 near sea-level | Not pure O2 |
+| Total pressure | **91 ± 10 kPa** | CMSE Shenzhou cabin band; CSS-class until finer numbers |
+| O2 partial | **20–26 kPa** | Same CMSE band |
+| Temperature | **19–26 C** | Public CSS comfort |
+| Relative humidity | **35–55%** | Public CSS comfort |
+| CO2 | Regenerable removal | Exact ppm TBD; track rising CO2 until scrubber model |
+
+Demo ops room (~44 m3) can be a work cell inside a larger station volume.
+
 ---
 
 ## Strider scale (vehicle)
