@@ -11,6 +11,7 @@ with Game_Environment;
 with Game_Grid;
 with Game_Items;
 with Game_Ops_Room;
+with Game_Passenger_Board;
 with Game_Scenario;
 with Game_Strider;
 with Game_Suit;
@@ -49,14 +50,18 @@ package Game_Demo is
       Food_Slot     : Game_Items.Slot_Index := 1;
       Drink_Slot    : Game_Items.Slot_Index := 2;
       Last_Scan_Vis : Natural := 0;
+      Last_Alarm_Code : Natural := 0;  -- critical cuff push
    end record;
 
    Link_Walk_AP  : constant Positive := 1;
    Link_Turn_AP  : constant Positive := 1;
    Link_Scan_AP  : constant Positive := 2;
 
-   --  Wrist / HUD display over existing typed state (no new physics).
-   --  Cabin preview values track Tiangong-like Physical_Data propose.
+   --  Wrist / cuff terminal: display over typed state (Physical_Data cuff).
+   --  Ada-only this phase; SPARK FUTURE climb (high-g glance / blackout).
+   --  Unreadable_Sentinel marks garbled non-critical lines under low clarity.
+   Unreadable_Sentinel : constant Natural := 999;
+
    type Wrist_Readout is record
       Zone            : Game_Atmosphere.Air_Zone;
       Pressure_kPa    : Natural;
@@ -67,9 +72,37 @@ package Game_Demo is
       Suit_Sealed     : Boolean;
       Suit_Minutes    : Natural;
       AP              : Game_Actors.Action_Points;
+      Vision_Clarity  : Game_Actors.Vision_Clarity_Percent := 100;
+      G_Load          : Game_Actors.G_Load_Tenths := 10;
+      Garbled         : Boolean := False;  -- non-critical lines unreliable
+      Alarm_Pushed    : Boolean := False;  -- critical alarms push without glance
+      Alarm_Code      : Natural := 0;      -- 0 = none; >0 = pushed alarm id
+      Glance_Ok       : Boolean := True;
    end record;
 
+   --  Snapshot only (no AP). Prefer Glance_Wrist for voluntary look under g.
    function Wrist (State : Demo_State) return Wrist_Readout
+   with Global => null;
+
+   --  Voluntary cuff glance: spends Glance_AP_Cost; fails if not Can_Raise_Arm
+   --  (blackout / extreme g). Low Vision_Clarity garbles non-critical lines;
+   --  critical Alarm_* still pushed.
+   Glance_Failed : exception;
+
+   procedure Glance_Wrist
+     (State : in out Demo_State;
+      Out_W : out Wrist_Readout)
+   with Global => null;
+
+   --  Critical alarm push (tone + auto cuff line) — no arm raise required.
+   procedure Push_Critical_Alarm
+     (State : in out Demo_State;
+      Code  : Positive)
+   with Global => null;
+
+   --  Passenger board computer (Passenger_Board.md); cabin meta only.
+   function Passenger_Panel
+     (State : Demo_State) return Game_Passenger_Board.Passenger_Board
    with Global => null;
 
    procedure Start_Demo (State : out Demo_State)
