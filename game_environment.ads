@@ -22,7 +22,8 @@
 pragma Ada_2022;
 
 --  Site layout and weather: bunker (human, N floors down), sealed double-door
---  airlock, outdoor rover dust storm (Mars-like on Earth).
+--  airlock, outdoor dust storm (Mars-thin exterior pressure; ADA lock).
+--  SPARK: FUTURE climb — L2–L4 candidate (IRL life-critical: airlock). Ada-only this phase; no gnatprove required.
 package Game_Environment is
 
    subtype Abs_Pressure_kPa is Natural range 0 .. 200;
@@ -34,7 +35,10 @@ package Game_Environment is
    Bunker_Floor_Depth : constant Floor_Count := 4;
 
    Nominal_Bunker_Pressure : constant Abs_Pressure_kPa := 101;
-   Storm_Outside_Pressure  : constant Abs_Pressure_kPa := 20;  -- crashed
+   --  ADA lock: keep 20 kPa as Mars-thin exterior (NOT Earth dust-storm 70–85 kPa).
+   Mars_Thin_Exterior_Pressure : constant Abs_Pressure_kPa := 20;
+   Storm_Outside_Pressure      : constant Abs_Pressure_kPa :=
+     Mars_Thin_Exterior_Pressure;  -- alias; Mars-thin, not Earth crashed band
    Storm_Outside_Temp_C    : constant Celsius := -25;
    Storm_Visibility_M      : constant Visibility_Meters := 0;
 
