@@ -94,7 +94,7 @@ package Game_Demo is
       Out_W : out Wrist_Readout)
    with Global => null;
 
-   --  Critical alarm push (tone + auto cuff line) — no arm raise required.
+   --  Critical alarm push (tone + auto cuff line) -- no arm raise required.
    procedure Push_Critical_Alarm
      (State : in out Demo_State;
       Code  : Positive)
@@ -154,6 +154,13 @@ package Game_Demo is
    --  Don / doff (helmet removable indoors; suit+helmet required to exit).
    procedure Don_EVA (State : in out Demo_State)
    with Global => null;
+
+   --  Pierce Spec: unseal -> ambient breathe; leak rates in Game_Suit.
+   procedure Pierce_Suit
+     (State : in out Demo_State;
+      Kind  : Game_Suit.Breach_Kind)
+   with Global => null;
+
 
    procedure Doff_Helmet (State : in out Demo_State)
    with Global => null;
