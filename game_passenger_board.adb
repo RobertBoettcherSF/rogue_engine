@@ -26,15 +26,18 @@ package body Game_Passenger_Board is
       Board.Alarm_Code := Alarm;
       Board.Warning_Red := Alarm > 0;
 
-      --  Cabin status from O2-partial band + CO2 (Physical_Data / Tiangong).
+      --  DS SI warning ladder (Passenger_Board / Physical_Data):
+      --  O2-partial: FAIL only <16 kPa; CAUTION if >24 (cabin allow ~19-30).
+      --  CO2-partial: CAUTION >0.4 kPa (Ada int >=1); FAIL >=3 kPa.
       if Cabin.Zone /= Game_Atmosphere.Cabin then
          Board.Cabin_Status := Fail;
       elsif O2_P < Game_Atmosphere.Safe_O2_Partial_Min_kPa
-        or else O2_P > Game_Atmosphere.Safe_O2_Partial_Max_kPa
         or else CO2_P >= 3
       then
          Board.Cabin_Status := Fail;
-      elsif CO2_P >= 1 or else O2_P < 18 or else O2_P > 22 then
+      elsif O2_P > Game_Atmosphere.Safe_O2_Partial_Max_kPa
+        or else CO2_P >= 1
+      then
          Board.Cabin_Status := Caution;
       else
          Board.Cabin_Status := OK;
