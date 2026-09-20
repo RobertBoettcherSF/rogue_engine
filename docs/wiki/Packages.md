@@ -17,8 +17,9 @@
 | `Game_Suit` | yes | EMU 145 kg worn; 29.6 kPa O2; Orlan alt | L2–L4 (suit) |
 | `Game_ECLSS` | yes | Cabin scrubber / O2 make-up tick (Ops rates) | L2–L4 (ECLSS) |
 | `Game_Demo` | yes | Walk, eat/drink, tick+ECLSS, sleep/dream, Strider, `Glance_Wrist`, `Passenger_Panel` | L2–L4 candidate |
+| `Game_Messages` | yes | Inbox STORY/ANNOUNCEMENT/CAUTION/ALERT/GUIDANCE; cuff priority; no compose | L2–L4 candidate |
 | `Game_Passenger_Board` | yes | OK/CAUTION/FAIL; g, MET, P, O2/CO2; vision-dim drops dense lines | L2–L4 candidate |
 
 Also: `play.adb`, `tests.adb`, `tests_ops_scenario.adb`, `tests_demo.adb`.
 
-Facts: [Physical_Data](Physical_Data.md) · Units: [SI_Units](SI_Units.md) · Demo: [Demo](Demo.md) · Strider: [Strider](Strider.md) · Passenger: [Passenger_Board](Passenger_Board.md) · Proof: [Proof](Proof.md)
+Facts: [Physical_Data](Physical_Data.md) · Units: [SI_Units](SI_Units.md) · Demo: [Demo](Demo.md) · Strider: [Strider](Strider.md) · Passenger: [Passenger_Board](Passenger_Board.md) · Messages: [Messages](Messages.md) · Proof: [Proof](Proof.md)
