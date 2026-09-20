@@ -1,47 +1,58 @@
 # rogue_engine
 
-Clean-room **Ada 2022** engine for a turn-based post-apocalyptic survival roguelike.
+Clean-room **Ada 2022** engine for a **twofold** turn-based survival game: a human operator deep in a sealed bunker remote-running a rover through a Mars-like dust storm on Earth.
 
-**License:** MIT (see [LICENSE](LICENSE)). All code and docs stay MIT; art assets are MIT or CC0 only. No third-party product names in documentation.
+**License:** MIT (see [LICENSE](LICENSE)). Code and docs stay MIT; art assets MIT or CC0 only. No third-party product names in documentation.
 
-Built step by step as strongly typed modules with contracts and a growing embedded test suite (`tests.adb`).
+Built step by step as strongly typed modules with contracts and a growing embedded suite (`tests.adb`). **Ada/SPARK first:** every design beat becomes typed packages, contracts, and tests — lore only counts once it is a package.
+
+## Premise (sim-backed)
+
+| Side | Where | Vitality |
+|------|--------|----------|
+| **Human** | Bunker, **4 floors** down; small sealed room air | **Tissue oxygenation** (not cartoon HP) |
+| **Robot / rover** | Outside in dust storm | **Power / hull / thermal** (no lungs) |
+
+Link: a **sealed double-door airlock** (never both open; chamber pressure cycles bunker ↔ storm). Outside: pressure crashed, cold, **visibility ~0**, blackout-dark though radio says midday, **aurora** over the storm; a **high satellite** still gives a coarse overhead picture. Player bunker room centers on a **mid-room console island** (headset ops).
 
 ## Goals
 
-- **Ada/SPARK first:** every design beat becomes typed packages + contracts + tests.
-
-- **Simulation-first:** the world rules live in Ada packages (grid, actors, inventory, time). Graphics are a thin, swappable layer — ASCII now, tiles later — without rewriting the sim.
-- **Content-driven:** tiles, items, maps, and factions will live in data files (JSON/TOML) so content authors do not compile Ada.
-- **Honest weight:** backpack **total load** = sum of container (**hull mass + content mass**). Contents are Solid / Liquid / Gas / Plasma; hulls track integrity (0 = ruptured). Comfortable carry = Strength × 1 kg; hard cap 2×.
-- **Proof where it pays:** SPARK-first on core sim invariants; plain Ada for loaders, UI, and content glue so features are not blocked by prove bars.
+- **Ada/SPARK first:** typed state + `Pre` / `Post` / `Global` + tests for each beat.
+- **Simulation-first:** world rules in Ada packages; graphics stay a thin, swappable layer (ASCII → tiles → sprites).
+- **Content-driven:** tiles/items/maps/factions → JSON/TOML later so artists do not compile Ada.
+- **Honest weight:** backpack load = Σ (hull mass + content mass); Solid / Liquid / Gas / Plasma; hull integrity 0–100% (≤50 opened, 0 ruptured); Strength×1 kg comfortable, 2× hard cap.
+- **Proof where it pays:** SPARK-first on core invariants; plain Ada for loaders/UI/content glue.
 
 ## Status
 
 | Step | Package | Notes |
-|------|---------|-------|
-| 1 | `Game_Grid` | Points, terrain, 24×24 chunks, Chebyshev distance, LOS blocking |
-| 2 | `Game_Actors` | Tagged actors, AP, health, adjacent `Move_To` |
-| 3 | `Game_Items` | Backpack load; hull+content mass; temps °C; seal→access; can opener + drill sample + process; plasma rupture = game over; 5/10 kg carry |
-| 4 | `Game_Actors` | Human (bunker O₂) vs Robot (power/hull/thermal) |
-| 5 | `Game_Environment` | 4F bunker, airlock, dust storm, satellite, aurora |
+|------|---------|--------|
+| 1 | `Game_Grid` | Points, terrain, 24×24 chunks, Chebyshev distance, LOS |
+| 2–4 | `Game_Actors` | `Human_Actor` (O₂ + `Bunker_Room` / `Breathe_In_Bunker`) · `Robot_Actor` (power/hull/thermal) · AP · adjacent `Move_To` |
+| 3 | `Game_Items` | Backpack; hull+content mass; °C; seal→access; can opener / drill sample / process; plasma breach = heat + burn/shock + game over |
+| 5 | `Game_Environment` | 4F depth · airlock · outdoor storm · satellite frame · aurora |
 | Next | Turn clock | Priority queue / AP tick scheduling |
+| Next | Matter tools | `Siphon_Liquid` / `Bleed_Gas` (solid drill already shipped) |
+| Next | Player room | Central console object as typed bunker furniture |
 
-**Tests:** `make test` — currently **101** assertions (Game_Grid + Game_Actors + Game_Items containers), zero warnings under `-gnatwa`.
+**Tests:** `make test` — **101** assertions, zero warnings under `-gnatwa`.
 
-## Architecture (planned)
+## Architecture
 
 ```
-┌──────────────────────────────────────┐
+┌────────────────────────────────────────┐
 │  Front end (ASCII → 32px tiles → sprites)   │
-├──────────────────────────────────────┤
+│  orange/teal terminal palette               │
+├────────────────────────────────────────┤
 │  Content schemas (JSON/TOML) + wiki lint    │
-├──────────────────────────────────────┤
-│  Ada sim core (SPARK-friendly packages)     │
-│  Game_Grid · Game_Actors · Weight · …       │
-└──────────────────────────────────────┘
+├────────────────────────────────────────┤
+│  Ada sim (SPARK-friendly)                   │
+│  Game_Grid · Game_Actors · Game_Items       │
+│  Game_Environment · (turn clock next)       │
+└────────────────────────────────────────┘
 ```
 
-Wiki pages should be generated or linted from the same schemas so lore cannot drift from game data.
+Bunker ops (human + mid-room console) and storm rover stay one game linked by the airlock. Wiki should be generated or linted from the same schemas so lore cannot drift from data.
 
 ## Build & test
 
@@ -55,7 +66,7 @@ Clean with `make clean`. Flags: `-gnatwa -gnat2022`.
 
 ## Contributing
 
-Engine work lands on `main` as complete packages (`*.ads` / `*.adb`), `tests.adb` updates, and README notes for each step. Prefer contracts (`Pre` / `Post` / `Global`) on public APIs.
+Land complete packages on `main` (`*.ads` / `*.adb`), extend `tests.adb`, update this README per step. Prefer contracts on public APIs.
 
 ## License
 
