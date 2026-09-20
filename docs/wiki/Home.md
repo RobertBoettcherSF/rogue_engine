@@ -3,8 +3,9 @@
 | Page | Topic |
 |------|--------|
 | [Try Locally](Try_Locally.md) | Clone / test / play |
+| [Story Arc](Story_Arc.md) | Bunker → rocket → station |
+| [Messages](Messages.md) | Communicator inbox |
 | [Wrist Map](Wrist_Map.md) | Terminal overmap |
-| [Messages](Messages.md) | Passenger inbox |
 | [Passenger Board](Passenger_Board.md) | Watchdog ladder |
 | [Suit](Suit.md) | EVA / Pierce |
 | [Physical Data](Physical_Data.md) | SI + worlds |
