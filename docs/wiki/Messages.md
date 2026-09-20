@@ -4,20 +4,18 @@ Lean Ada — **incoming only** this phase (no compose).
 
 ## Features
 
-| Action | v0 |
-|--------|----|
-| List | Show inbox |
-| Open / read | View body |
-| Archive | Move out of active list |
-| Delete | Remove |
-| Compose | **Not yet** |
+List → open/read → archive / delete. Compose later.
 
-Sources: INFO / ANNOUNCEMENT / CAUTION / FAIL pushes from watchdog + scripted welcome.
+Sources: watchdog ANNOUNCEMENT / CAUTION / FAIL + scripted seeds.
 
-## Seed message
+## Seed messages
+
+**INFO / welcome**
 
 > Dear Passenger. Thank you for flying with Rogue Engine. We hope you have a pleasant flight to and stay at **&lt;Planetname&gt;**.
 
-`Planetname` from active scenario world profile (Earth / Mars / Titan / …).
+**ANNOUNCEMENT** (yellow later)
 
-Map and inbox are separate UI surfaces.
+> We are experiencing technical difficulties. Please observe and follow instructions from flight personnel.
+
+`Planetname` from active scenario profile.
