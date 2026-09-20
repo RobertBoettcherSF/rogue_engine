@@ -1,30 +1,33 @@
 # Try locally (copy-paste)
 
-Need **GNAT + gprbuild** (Ada 2022). Ubuntu/Debian: `sudo apt install gnat gprbuild`.
+Need **GNAT + gprbuild**. Ubuntu/Debian: `sudo apt install gnat gprbuild`.
+
+Prefer a **git clone**, not a zip named `rogue_engine-main`:
 
 ```bash
 cd ~/Downloads
-rm -rf rogue_engine rogue_engine-main
+# if an empty/old clone blocks you:
+# rm -rf rogue_engine
 git clone https://github.com/RobertBoettcherSF/rogue_engine.git
 cd rogue_engine
+git pull
 make test
 make play
 ```
 
-There is no `demo` command. Do **not** use an old `rogue_engine-main` zip — clone current main. Inventory: [Packages.md](Packages.md). Spec: [Wrist_Map.md](Wrist_Map.md).
+Already cloned:
 
-## `make play` — Wrist_Map v0
+```bash
+cd ~/Downloads/rogue_engine
+git pull
+make play
+```
 
-Plain Ada `Text_IO` — **no** GUI, **no** ANSI/ncurses.
+## What you should see
 
-| Key | Action |
-|-----|--------|
-| `wasd` / `hjkl` | Pan cursor |
-| `W` | Chart course preview → confirm |
-| `.` / Enter | Step `@` along course (m) |
-| `1`–`4` | Profile: Earth / Mars-thin / Mars / Titan |
-| `m` | Toggle local ops-room |
-| `x` | Clear course |
-| `q` | Quit |
+| Command | What it is |
+|---------|------------|
+| `make test` | Lots of `PASS` — physics watchdog |
+| `make play` / `./play` | **Now:** short scripted smoke log (walk/eat/strider/sleep). **Next:** interactive `@` + WASD wrist-map |
 
-Cuff shows `LEVEL/X/Y`, cabin NOMINAL + P/O2, and profile `P / O2% / g0 / outdoor=…`. Course length is metres (1 tile = 1 m).
+There is no `demo` command. If `./play` only prints a short “Demo sequence OK”, that’s expected until the interactive map lands — pull again then.
