@@ -4,15 +4,19 @@
 pragma Ada_2022;
 
 --  Passenger MESSAGE INBOX (Messages.md). Incoming only — list / open /
---  archive / delete. No compose. Sources: INFO / ANNOUNCEMENT / CAUTION / FAIL
---  from seed + watchdog. FUTURE color: ANNOUNCEMENT yellow (plain text now).
+--  archive / delete. No compose.
+--  Kinds lean: STORY, ANNOUNCEMENT, CAUTION, ALERT, GUIDANCE.
+--  Priority (cuff): ALERT > CAUTION > ANNOUNCEMENT/GUIDANCE > STORY.
+--  ALERT/CAUTION never wait on STORY. STORY never rewrites SI (kPa/s/kg).
+--  Life path = raw SI + locked trips; communicator story is separate.
+--  FUTURE color: ANNOUNCEMENT yellow (plain text now).
 package Game_Messages is
 
    Max_Messages : constant := 16;
    subtype Slot_Index is Positive range 1 .. Max_Messages;
 
    --  Align with passenger urgency ladder (board + Messages Spec).
-   type Message_Kind is (Info, Announcement, Caution, Fail);
+   type Message_Kind is (Story, Announcement, Caution, Alert, Guidance);
    type Message_Flag is (Unread, Read, Archived, Deleted);
 
    Subject_Length : constant := 48;
@@ -22,7 +26,7 @@ package Game_Messages is
    subtype Payload_Text is String (1 .. Payload_Length);
 
    type Message is record
-      Kind    : Message_Kind := Info;
+      Kind    : Message_Kind := Story;
       Flag    : Message_Flag := Unread;
       Subject : Subject_Text := (others => ' ');
       Payload : Payload_Text := (others => ' ');
@@ -34,7 +38,7 @@ package Game_Messages is
    procedure Clear (Box : out Inbox)
    with Global => null;
 
-   --  Seed (1) welcome INFO with Planetname (2) technical-difficulties ANNOUNCEMENT.
+   --  Seed (1) welcome STORY with Planetname (2) technical-difficulties ANNOUNCEMENT.
    procedure Seed_Inbox (Box : in out Inbox; Planet : String)
    with Global => null;
 
@@ -45,14 +49,14 @@ package Game_Messages is
       Text    : String)
    with Global => null;
 
-   --  Watchdog pushes (CAUTION / FAIL). No-op for OK/NOMINAL.
+   --  Watchdog pushes (CAUTION / ALERT). No-op for OK/NOMINAL.
    procedure Push_Watchdog
      (Box     : in out Inbox;
       Kind    : Message_Kind;
       Subject : String;
       Text    : String)
    with Global => null,
-        Pre => Kind = Caution or else Kind = Fail;
+        Pre => Kind = Caution or else Kind = Alert;
 
    function Active_Count (Box : Inbox) return Natural
    with Global => null;
@@ -60,7 +64,7 @@ package Game_Messages is
    function Unread_Count (Box : Inbox) return Natural
    with Global => null;
 
-   --  Nth active (non-deleted, non-archived); 0 if missing.
+   --  Nth active by cuff priority (ALERT first … STORY last); 0 if missing.
    function Active_Slot (Box : Inbox; N : Positive) return Natural
    with Global => null;
 
@@ -77,6 +81,11 @@ package Game_Messages is
    with Global => null;
 
    function Kind_Tag (K : Message_Kind) return String
+   with Global => null;
+
+   --  Cuff priority rank: higher surfaces first in Active_Slot / Put_List.
+   --  ALERT=4, CAUTION=3, ANNOUNCEMENT|GUIDANCE=2, STORY=1.
+   function Urgency (K : Message_Kind) return Natural
    with Global => null;
 
    procedure Put_List (Box : Inbox);
