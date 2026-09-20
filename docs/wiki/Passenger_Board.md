@@ -1,26 +1,17 @@
-# Passenger board
+# Passenger board / live watchdog
 
-Ada keeps SI inside. Passenger sees **NOMINAL / CAUTION / FAIL** (and announcements) as **plain text** this phase.
+Map is nav only. Live monitor is separate: **NOMINAL / CAUTION / FAIL** (plain text; FUTURE colors).
 
-## Atm_Fraction display
+## Watchdog SI trips (leave NOMINAL)
 
-**0.00…1.00**, **1.00 = Earth (~101 kPa)**. Cabin green total P: **0.90–1.10**. Mars-thin ~0.20 (bad for unsuited). EMU ~0.29 pure O2 can still be NOMINAL.
+| Trip | Condition |
+|------|-----------|
+| Cabin total P | Atm_Fraction outside **0.90–1.10** (Earth = 1.00) |
+| Cabin O2 | O2-partial outside **~16–24 kPa** |
+| Cabin CO2 | **> 0.4 kPa** long-term (emergency **> 3 kPa** → FAIL) |
+| Suit | Seal fail or life-support timer exhausted |
+| G | `G_Load` into greyout / blackout band |
 
-## Status levels (plain Ada now)
+Map may stay visible; these lights are independent.
 
-| Level | Meaning |
-|-------|--------|
-| NOMINAL | All clear |
-| ANNOUNCEMENT | General info |
-| CAUTION | Cautionary warning |
-| FAIL | Critical alarm |
-
-**FUTURE color** (not this phase): NOMINAL→green, ANNOUNCEMENT→yellow, CAUTION→orange, FAIL→red (ANSI or UI later).
-
-## Priority lines
-
-1. Cabin air status + critical alarms
-2. Current g
-3. MET; optional P / O2
-
-Drop dense rates first when Vision_Clarity is low.
+Ada stores kPa; board may show Atm_Fraction. Offline watchdog = `make test` PASS suite.
