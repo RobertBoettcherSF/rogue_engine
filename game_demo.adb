@@ -172,7 +172,7 @@ package body Game_Demo is
       State.Clock := (Turn => 0, Minutes => 0);
       State.Cabin_Air :=
         Game_Atmosphere.From_Bunker_Room (Cfg.Ops.Air, Game_Atmosphere.Cabin);
-      State.Exterior_Air := Game_Atmosphere.Storm_Exterior_Air;
+      State.Exterior_Air := Game_Scenario.Exterior_Air (Cfg.Atmosphere);
       State.Human_Zone := Game_Atmosphere.Cabin;
       State.Suit := Game_Suit.Make_EMU;
       State.Lock := Cfg.Lock;
@@ -290,8 +290,8 @@ package body Game_Demo is
    procedure Strider_Scan (State : in out Demo_State) is
    begin
       Spend_Link_AP (State, Link_Scan_AP);
-      State.Last_Scan_Vis := 0;
       Game_Actors.Adjust_Power (State.Strider, -1);
+      State.Last_Scan_Vis := 0;
       Autopilot_Human (State);
    end Strider_Scan;
 
@@ -322,8 +322,8 @@ package body Game_Demo is
    end Drink;
 
    procedure Tick (State : in out Demo_State) is
+      use type Game_Suit.Breach_Kind;
    begin
-      --  Cabin ECLSS (Physical_Data Ops-locked); demo cell 1x person.
       if State.Human_Zone = Game_Atmosphere.Cabin then
          Game_ECLSS.Tick_Cabin
            (Air        => State.Cabin_Air,
@@ -338,6 +338,12 @@ package body Game_Demo is
         and then Game_Suit.Is_Sealed_For_EVA (State.Suit)
       then
          Game_Suit.Tick_Life_Support (State.Suit, Minutes => 1);
+      end if;
+      if State.Suit.Breach /= Game_Suit.Intact then
+         Game_Suit.Tick_Breach
+           (State.Suit,
+            Ambient_P_kPa => State.Exterior_Air.Pressure_kPa,
+            Seconds       => 60);
       end if;
       Autopilot_Human (State);
       if not State.Human.Sleeping then
@@ -382,11 +388,26 @@ package body Game_Demo is
    begin
       Game_Suit.Don_Suit (State.Suit);
       Game_Suit.Don_Helmet (State.Suit);
+      State.Suit.Breach := Game_Suit.Intact;
+      State.Suit.Pressure_kPa := Game_Suit.EMU_Operating_P_kPa;
+      State.Suit.Consciousness_S := Game_Suit.Vacuum_Consciousness_S;
    end Don_EVA;
+
+   procedure Pierce_Suit
+     (State : in out Demo_State;
+      Kind  : Game_Suit.Breach_Kind)
+   is
+      use type Game_Suit.Breach_Kind;
+   begin
+      if Kind = Game_Suit.Intact then
+         return;
+      end if;
+      Game_Suit.Pierce (State.Suit, Kind);
+      Autopilot_Human (State);
+   end Pierce_Suit;
 
    procedure Doff_Helmet (State : in out Demo_State) is
    begin
-      --  Indoors optional; outdoors without helmet => next breathe is storm air.
       Game_Suit.Doff_Helmet (State.Suit);
       Autopilot_Human (State);
    end Doff_Helmet;
@@ -399,7 +420,6 @@ package body Game_Demo is
       if not Game_Suit.Is_Sealed_For_EVA (State.Suit) then
          raise Suit_Required;
       end if;
-      --  Airlock: both doors never open; cycle to storm, open outer.
       Game_Environment.Close_Inner (State.Lock);
       Game_Environment.Close_Outer (State.Lock);
       Game_Environment.Cycle_To_Storm (State.Lock);
