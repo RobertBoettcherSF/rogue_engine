@@ -10,30 +10,31 @@ Built step by step as strongly typed modules with contracts and a growing embedd
 
 - **Simulation-first:** the world rules live in Ada packages (grid, actors, inventory, time). Graphics are a thin, swappable layer — ASCII now, tiles later — without rewriting the sim.
 - **Content-driven:** tiles, items, maps, and factions will live in data files (JSON/TOML) so content authors do not compile Ada.
-- **Honest weight:** carry capacity is strict. Mid Strength (about 4–6) ≈ **5 kg** comfortable load; **10 kg** already over-encumbered. The Strength→kg curve will be contracted in the Weight module.
+- **Honest weight:** backpack **total load** = sum of container (**hull mass + content mass**). Contents are Solid / Liquid / Gas / Plasma; hulls track integrity (0 = ruptured). Comfortable carry = Strength × 1 kg; hard cap 2×.
 - **Proof where it pays:** SPARK-first on core sim invariants; plain Ada for loaders, UI, and content glue so features are not blocked by prove bars.
 
 ## Status
 
 | Step | Package | Notes |
-|------|---------|--------|
+|------|---------|-------|
 | 1 | `Game_Grid` | Points, terrain, 24×24 chunks, Chebyshev distance, LOS blocking |
 | 2 | `Game_Actors` | Tagged actors, AP, health, adjacent `Move_To` |
-| Next | Weight / inventory / turn clock | Spec-driven; Weight epic tracks the carry curve |
+| 3 | `Game_Items` | Backpack load; containers (hull+content); Solid/Liquid/Gas/Plasma; hull integrity; 5 kg / 10 kg carry |
+| Next | Turn clock | Priority queue / AP tick scheduling |
 
-**Tests:** `make test` — currently **30** assertions (18 Game_Grid + 12 Game_Actors), zero warnings under `-gnatwa`.
+**Tests:** `make test` — currently **53** assertions (Game_Grid + Game_Actors + Game_Items containers), zero warnings under `-gnatwa`.
 
 ## Architecture (planned)
 
 ```
-┌─────────────────────────────────────────────┐
+┌─────────────────────────────────────────┐
 │  Front end (ASCII → 32px tiles → sprites)   │
-├─────────────────────────────────────────────┤
+├─────────────────────────────────────────┤
 │  Content schemas (JSON/TOML) + wiki lint    │
-├─────────────────────────────────────────────┤
+├─────────────────────────────────────────┤
 │  Ada sim core (SPARK-friendly packages)     │
 │  Game_Grid · Game_Actors · Weight · …       │
-└─────────────────────────────────────────────┘
+└─────────────────────────────────────────┘
 ```
 
 Wiki pages should be generated or linted from the same schemas so lore cannot drift from game data.
