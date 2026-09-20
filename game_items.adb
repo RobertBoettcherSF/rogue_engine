@@ -82,7 +82,7 @@ package body Game_Items is
         (Slots =>
            [others =>
               (Hull_Mass        => 0,
-               Integrity         => 100,
+               Integrity        => 100,
                Hull_Temp_C      => 20,
                Content_State    => Solid,
                Content_Mass     => 0,
@@ -142,11 +142,11 @@ package body Game_Items is
       Pack.Slots (Pack.Count) :=
         (Hull_Mass        => 0,
          Integrity         => 100,
-         Hull_Temp_C       => 20,
-         Content_State     => Solid,
-         Content_Mass      => 0,
-         Content_Capacity  => 0,
-         Content_Temp_C    => 20);
+         Hull_Temp_C      => 20,
+         Content_State    => Solid,
+         Content_Mass     => 0,
+         Content_Capacity => 0,
+         Content_Temp_C   => 20);
       Pack.Count := Pack.Count - 1;
    end Remove_Last;
 
@@ -159,6 +159,11 @@ package body Game_Items is
          C.Integrity := 0;
       else
          C.Integrity := C.Integrity - Amount;
+      end if;
+
+      --  Plasma vent: heat spike + (caller uses Check_Containment for game over).
+      if Is_Plasma_Catastrophe (C) then
+         Apply_Plasma_Breach (C);
       end if;
    end Damage_Hull;
 
@@ -203,6 +208,20 @@ package body Game_Items is
         and then C.Content_Mass > 0
         and then C.Integrity = 0;
    end Is_Plasma_Catastrophe;
+
+   function Plasma_Leak_Effects (C : Container) return Leak_Effects is
+   begin
+      return
+        (Burn         => True,
+         Electrocute  => True,
+         Heat_Spike_C => Plasma_Breach_Heat_C);
+   end Plasma_Leak_Effects;
+
+   procedure Apply_Plasma_Breach (C : in out Container) is
+   begin
+      C.Hull_Temp_C := Plasma_Breach_Heat_C;
+      C.Content_Temp_C := Plasma_Breach_Heat_C;
+   end Apply_Plasma_Breach;
 
    procedure Check_Containment (C : Container) is
    begin

@@ -73,7 +73,7 @@ package Game_Items is
       Slots : Container_Array :=
         [others =>
            (Hull_Mass        => 0,
-            Integrity         => 100,
+            Integrity        => 100,
             Hull_Temp_C      => 20,
             Content_State    => Solid,
             Content_Mass     => 0,
@@ -232,7 +232,37 @@ package Game_Items is
           and then C.Content_Mass > 0
           and then C.Integrity = 0);
 
-   --  After Damage_Hull, call to enforce plasma rupture = game over.
+   --  What a plasma breach does to the surroundings / handler.
+   type Leak_Effects is record
+      Burn         : Boolean := False;  -- thermal flash / fire
+      Electrocute  : Boolean := False;  -- charge dump through conductors
+      Heat_Spike_C : Celsius_Degrees := 0;  -- ambient / hull jump
+   end record;
+
+   Plasma_Breach_Heat_C : constant Celsius_Degrees := 3_000;
+
+   --  On full plasma rupture: cook the can (temp spike) and report burn+shock.
+   function Plasma_Leak_Effects (C : Container) return Leak_Effects
+   with
+     Global => null,
+     Pre    => Is_Plasma_Catastrophe (C),
+     Post   =>
+       Plasma_Leak_Effects'Result.Burn
+       and then Plasma_Leak_Effects'Result.Electrocute
+       and then Plasma_Leak_Effects'Result.Heat_Spike_C = Plasma_Breach_Heat_C;
+
+   --  Apply breach physics to the container (raises hull + content temp).
+   --  Call after Integrity hits 0 with plasma still inside.
+   procedure Apply_Plasma_Breach (C : in out Container)
+   with
+     Global => null,
+     Pre    => Is_Plasma_Catastrophe (C),
+     Post   =>
+       C.Hull_Temp_C = Plasma_Breach_Heat_C
+       and then C.Content_Temp_C = Plasma_Breach_Heat_C;
+
+   --  After Damage_Hull, call to enforce plasma rupture = game over
+   --  (temps should already be spiked via Apply_Plasma_Breach).
    procedure Check_Containment (C : Container)
    with Global => null;
 

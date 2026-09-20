@@ -379,6 +379,21 @@ begin
                Boom := True;
          end;
          Check (Boom, "Check_Containment raises Plasma_Containment_Lost (game over)");
+         Check
+           (Plasma_Cell.Hull_Temp_C = I.Plasma_Breach_Heat_C,
+            "Plasma breach spikes hull temperature");
+         Check
+           (Plasma_Cell.Content_Temp_C = I.Plasma_Breach_Heat_C,
+            "Plasma breach spikes content temperature");
+         declare
+            FX : constant I.Leak_Effects := I.Plasma_Leak_Effects (Plasma_Cell);
+         begin
+            Check (FX.Burn, "Plasma leak burns");
+            Check (FX.Electrocute, "Plasma leak electrocutes");
+            Check
+              (FX.Heat_Spike_C = I.Plasma_Breach_Heat_C,
+               "Plasma leak heat spike is breach temperature");
+         end;
       end;
 
       --  Can opener + drill sample + process (rover loop)
