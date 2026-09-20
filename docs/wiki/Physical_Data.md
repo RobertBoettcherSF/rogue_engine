@@ -47,60 +47,77 @@ Default play profile: **ISS EMU-class**. Orlan-class is an alternate profile. He
 ### Game rules (SI-locked)
 
 1. Don suit + lock helmet before opening outer airlock to storm.
-2. **Worn suit mass is `Mass_Kilograms` with mobility/AP penalty — never human Strength carry.** Comfortable carry stays **5 kg** for backpack `Mass_Grams` only. A **145 kg** EMU must not be checked against Strength capacity.
-3. Sealed EMU loop: treat **29.6 kPa at 100% O2** as healthy (inspired partial ≈ suit P). **Do not** multiply suit pressure by 21% air-mix. The unsuited air-mix band (~16–24 kPa) applies only to bunker/tile air.
+2. **Worn suit mass is `Mass_Kilograms` with mobility/AP penalty — never human Strength carry.**
+3. Sealed EMU loop: **29.6 kPa at 100% O2** healthy as-is — **do not** multiply by 21%.
 4. Tile air only when helmet unlocked indoors.
 5. Life-support timer: primary → emergency reserve → hypoxia.
 
 ### Wrist / cuff terminal (display layer)
 
-Thin UI over existing typed state — **no new physics**. Demo v0 readouts when suited:
-
-| Readout | Source state |
-|---------|--------------|
-| Suit pressure (kPa) | suit loop absolute P |
-| O2 time remaining (primary + reserve) | life-support timers |
-| CO2 / caution flags | suit or cabin CO2 vs limits |
-| Thermal (C or K) | suit / robot thermal |
-| Battery / power % | PLSS / suit power |
-| Seal status (helmet, gloves, zipper) | sealed flags |
-| Tissue O2 % | human actor vitality |
-
-Out of scope until Spec: ECG, SpO2 optics, continuous biomed beyond tissue O2.
+Thin UI over typed state: suit P, O2 time left, CO2/caution, thermal, power, seals, tissue O2. No ECG for v0.
 
 ---
 
-## Tiangong-class station cabin (optional profile)
+## Tiangong-like cabin (Earth-analogue station module)
 
-Same breathe spine (P / O2% / CO2% / volume → tissue O2). Framework yes; full twin needs scrubber rates + richer vitals.
+Play profile for station-like rooms (not a full CSS twin). DS-proposed bands locked for Ada cabin defaults:
 
-| Quantity | Locked intent | Notes |
-|----------|---------------|-------|
-| Station pressurised / habitable | **~340 / ~122 m3** | Public CSS figures |
-| Tianhe pressurised / habitable | **~113 / ~50–51 m3** | Core module |
-| Gas mix | O2/N2 near sea-level | Not pure O2 |
-| Total pressure | **91 ± 10 kPa** | CMSE Shenzhou cabin band; CSS-class until finer numbers |
-| O2 partial | **20–26 kPa** | Same CMSE band |
-| Temperature | **19–26 C** | Public CSS comfort |
-| Relative humidity | **35–55%** | Public CSS comfort |
-| CO2 | Regenerable removal | Exact ppm TBD; track rising CO2 until scrubber model |
+| Quantity | Locked |
+|----------|--------|
+| Total pressure | **~101 kPa** |
+| O2 partial | **~19–30 kPa** |
+| CO2 long-term | **≤ 0.4 kPa** |
+| CO2 emergency | **≤ 3 kPa** |
+| Temperature | **~20–25 C** |
+| Relative humidity | **~50–65%** |
+| Gas mix | O2/N2 near sea-level |
 
-Demo ops room (~44 m3) can be a work cell inside a larger station volume.
+Volumes (public CSS): station ~340 / ~122 m3 pressurised/habitable; Tianhe ~113 / ~50–51 m3. Demo ops room (~44 m3) = work cell.
+
+Alternate CMSE Shenzhou published cabin band (reference only): total **91 ± 10 kPa**, O2 partial **20–26 kPa**.
+
+---
+
+## ECLSS scrubber / O2 make-up rates (locked for cabin tick)
+
+Per-person metabolic baselines (literature / ISS planning):
+
+| Quantity | Rate |
+|----------|------|
+| CO2 production | **~1.0 kg/day/person** (~1 HEU) |
+| O2 consumption | **~0.84 kg/day/person** |
+
+Station-class hardware capacity (ISS public; CSS regen meets ~100% O2 / purify demand for crew — use ISS rates until finer CSS kg/day publish):
+
+| System | Capacity | Notes |
+|--------|----------|-------|
+| CO2 removal (1 CDRA dual-bed class) | **~6 kg CO2/day** (~6 HEU) | ISS CDRA; ~1 kg/day per person-eq |
+| O2 generation (OGA selectable) | **~2.3–9.3 kg O2/day** | ISS OGA 5.1–20.4 lb/day; nominal ~3 crew |
+| Demo single-crew work cell | Scrub **~1.0 kg CO2/day**; make-up **~0.84 kg O2/day** | Match 1 occupant; scale ×N crew |
+
+### Ada cabin tick intent
+
+Each sim tick while ECLSS online:
+1. Add crew CO2 mass from metabolic rate × dt.
+2. Remove CO2 up to scrubber capacity × dt (cap at cabin CO2 inventory).
+3. Remove O2 from crew draw; inject O2 make-up up to generator capacity × dt.
+4. Hold total P near target by N2/O2 policy (simple: restore O2 first, then pad N2 if Spec says).
+5. If scrubber offline, CO2 climbs toward emergency 3 kPa; wrist flags caution above 0.4 kPa.
+
+Offline / failed ECLSS: sealed room drifts like mine refuge — CO2 fails before O2 in many cases.
 
 ---
 
 ## Strider scale (vehicle)
 
-Use `Mass_Kilograms`, not human `Mass_Grams`.
-
 | Quantity | Full class | Demo stand-in |
 |----------|------------|---------------|
 | Empty mass | **1,680,000 kg** | **50,000 kg** |
-| Payload | **100,000 kg** (trivial / ~6% of empty) | **500 kg** |
+| Payload | **100,000 kg** (trivial / ~6%) | **500 kg** |
 | Step | ~12 m | 1 m tile |
 | Power | 14 MW / 19 MW overload | kW budget |
 
-`Payload_Is_Trivial` must accept 100,000 kg on full class.
+`Payload_Is_Trivial` must accept 100,000 kg on full class. Use `Mass_Kilograms`.
 
 ---
 
@@ -108,31 +125,31 @@ Use `Mass_Kilograms`, not human `Mass_Grams`.
 
 | Quantity | Baseline |
 |----------|----------|
-| O2 safe band | 18.5–23% vol |
+| O2 safe band (air-mix) | 18.5–23% vol |
 | Resting O2 draw | **0.5 L/min/person** |
 | Sleep O2 draw | **~0.35 L/min/person** |
-| Default ops room | 20 m2 floor x 2.2 m ≈ **44 m3** |
+| Default ops room | 20 m2 × 2.2 m ≈ **44 m3** |
 | Bunker depth | 4 floors |
 
-Autopilot (unsuited): effective O2 = absolute P (kPa) x O2 fraction. Healthy band ~16–24 kPa; CO2 can fail first.
+Unsuited breathe: effective O2 = P × O2 fraction; healthy ~16–24 kPa.
 
 ---
 
 ## Airlock
 
-Both-open forbidden. Equalize chamber before matching door. Prefer ≤4 volume exchanges. Outer exit to storm requires sealed suit+helmet when exterior is unsurvivable on tile air.
+Both-open forbidden. Outer storm exit requires sealed suit+helmet when exterior unsurvivable.
 
 ---
 
 ## Outdoor storm
 
-Prefer cabin vs exterior split. Unnamed **20 kPa** exterior is not the documented Earth default (70–85 kPa) unless marked Mars-thin. Storm tile air with Earth mix at 20 kPa ≈ 4 kPa O2-partial — unsurvivable without suit/cabin.
+Prefer cabin vs exterior split. Name Mars-thin if using ~20 kPa exterior.
 
 ---
 
 ## Titan-style scenario
 
-~1.47–1.50 bar surface; ~94 K; not breathable. Kelvin SoT.
+~1.47–1.50 bar; ~94 K; not breathable.
 
 ---
 
