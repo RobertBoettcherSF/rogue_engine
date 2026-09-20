@@ -10,7 +10,9 @@ In-repo wiki mirrors **typed Ada packages** on `main`. If prose and code disagre
 | [Environment](Environment.md) | Airlock, storm, satellite, aurora |
 | [Dream-RSI](Dream-RSI.md) | Explore → Construct → Dream → Redeploy |
 | [Physical Data](Physical_Data.md) | Ops-owned factual baselines (P/T/O₂/carry) |
-| [Scenario](Scenario.md) | Flexible starts (`Game_Scenario` Spec) |
+| [SI Units](SI_Units.md) | Base SI units + aliases (Data Scientist) |
+| [Scenario](Scenario.md) | Flexible starts (`Game_Scenario`) — shipped |
+| [Demo](Demo.md) | Playable walk / eat / breathe / sleep-dream Spec |
 
 **Repo:** https://github.com/RobertBoettcherSF/rogue_engine  
-**Tests:** `make test` (121 assertions on current main)
+**Tests:** `make test` (121+ assertions on current main)

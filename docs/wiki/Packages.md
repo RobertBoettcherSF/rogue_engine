@@ -6,10 +6,10 @@
 | `Game_Actors` | `Human_Actor` (O₂ + bunker breathe) · `Robot_Actor` (power/hull/thermal) · AP · adjacent move |
 | `Game_Items` | Backpack load; container hull+content; °C; seal→access; can opener / drill / process; plasma breach |
 | `Game_Dream_RSI` | Discovery tree; replay sim; improve exploration policy; redeploy |
-| `Game_Environment` | Bunker depth, airlock, outdoor storm, satellite frame, aurora |
-| `Game_Ops_Room` | 5×4 @ 1 m (~20 m²) ops room; per-tile height; console island + seat + airlock door |
-| `Game_Scenario` | `Load_Scenario` / `Apply_Start` for bunker+rover and Titan flight-control |
+| `Game_Environment` | Bunker depth, airlock, storm, satellite frame, aurora |
+| `Game_Ops_Room` | Typed mid-room layout; floor tiles; height; air volume |
+| `Game_Scenario` | Flexible starts (bunker+rover vs Titan-style) — **shipped** |
 
-Next candidates: turn clock (AP / priority queue); siphon liquid / bleed gas.
+Factual constants: [Physical Data](Physical_Data.md). Units: [SI Units](SI_Units.md). Playable demo Spec: [Demo](Demo.md).
 
-See [Scenario](Scenario.md) and [Physical Data](Physical_Data.md).
+Next candidates: turn clock; siphon liquid / bleed gas; DEMO walk/eat/breathe/sleep-dream loop.
