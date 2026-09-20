@@ -9,6 +9,8 @@ In-repo wiki mirrors **typed Ada packages** on `main`. If prose and code disagre
 | [Containers](Containers.md) | Mass, integrity, matter, tools |
 | [Environment](Environment.md) | Airlock, storm, satellite, aurora |
 | [Dream-RSI](Dream-RSI.md) | Explore → Construct → Dream → Redeploy |
+| [Physical Data](Physical_Data.md) | Ops-owned factual baselines (P/T/O₂/carry) |
+| [Scenario](Scenario.md) | Flexible starts (`Game_Scenario` Spec) |
 
 **Repo:** https://github.com/RobertBoettcherSF/rogue_engine  
-**Tests:** `make test` (101 assertions on current main)
+**Tests:** `make test` (108 assertions on current main)
