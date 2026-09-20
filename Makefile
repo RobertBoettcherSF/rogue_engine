@@ -15,5 +15,5 @@ test:
 
 clean:
 	gprclean -P $(GPR) || true
-	rm -f $(MAIN)
+	rm -f $(MAIN) tests_ops_scenario
 	rm -rf obj

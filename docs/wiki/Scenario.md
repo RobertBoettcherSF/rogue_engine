@@ -1,6 +1,6 @@
 # SPEC: Game_Scenario (flexible starts)
 
-Status: **Spec ready** for ADA implementation. Engine stays generic; scenarios are data + thin Ada packages.
+Status: **Implemented** on main (`game_scenario.ads/.adb`, `tests_ops_scenario`). Engine stays generic; scenarios are data + thin Ada packages.
 
 ---
 
@@ -12,28 +12,25 @@ Titan flight-control is a **scenario**, not the engine identity.
 
 ---
 
-## Package sketch: `Game_Scenario`
+## Package: `Game_Scenario`
 
-### Types (suggested)
+### Types
 
-- `Scenario_Id` — stable string/enum key (`Bunker_Rover_Storm`, `Titan_Flight_Control`, …)
-- `Start_Site` — bunker depth / control-room grid / outdoor spawn
-- `Control_Room_Layout` — console island position, headset ops furniture id
+- `Scenario_Id` — `Bunker_Rover_Storm`, `Titan_Flight_Control`
 - `Linked_Outdoor_Role` — rover / lander / none
-- `Atmosphere_Profile` — references Physical Data tables (bunker air vs storm vs Titan)
-- `Dream_RSI_Enabled` — boolean; which actor logs Explore ticks
+- `Atmosphere_Kind` — bunker-earth-storm vs Titan surface
+- `Scenario_Config` — floor, outdoor role, atmosphere, Dream-RSI flag, ops room, storm, airlock
 
-### Required operations
+### Operations
 
-- `Load_Scenario (Id) → Scenario_Config` (from JSON/TOML later; hardcoded enums OK for v1)
-- `Apply_Start (World, Config)` — place human + linked outdoor actor, set environment profile, seed airlock closed
-- `Active_Scenario` query for UI / wiki
+- `Load_Scenario (Id) → Scenario_Config`
+- `Apply_Start (Config, Human, Robot)` — place human at ops seat; seed outdoor robot; airlock sealed
 
 ### Invariants
 
-- Exactly one active scenario per run
-- Airlock both-open still forbidden under every scenario that has an airlock
-- Human vitality remains tissue O₂ + room air when scenario uses bunker cast; robot uses power/hull/thermal outdoors
+- Exactly one active scenario per run (caller-held)
+- Airlock both-open still forbidden
+- Human vitality = tissue O₂ + room air; robot = power/hull/thermal outdoors
 - Weight / mass rules always on
 
 ---
@@ -45,33 +42,25 @@ Titan flight-control is a **scenario**, not the engine identity.
 | Cast | Human 4 floors down; rover outside |
 | Link | Sealed double-door airlock |
 | Outdoor | Earth dust storm, Mars-like hostility (see Physical_Data) |
-| Ops | Center console island + headset |
+| Ops | Center console island + headset (`Game_Ops_Room` 5×4 @ 1 m) |
 | Dream-RSI | Rover Explore → bunker Construct/Dream → Redeploy |
 
 ## Scenario B — Titan-style flight control
 
 | Field | Value |
 |-------|-------|
-| Cast | Operator in control room (may still be “human actor”); linked vehicle/lander role |
-| Atmosphere | Titan surface / cruise profile from Physical_Data |
+| Cast | Operator in control room; linked lander role |
+| Atmosphere | Titan surface profile from Physical_Data (clamped °C for now) |
 | Dream-RSI | Optional; exploration policy on approach/landing branches |
-| Note | Same packages; different `Atmosphere_Profile` + start layout |
-
----
-
-## Out of scope for first cut
-
-- Full content browser UI
-- Mod workshop
-- More than two starter scenarios
+| Note | Same packages; different atmosphere + start layout |
 
 ---
 
 ## Done when
 
-- [ ] `game_scenario.ads/.adb` + tests green on main
-- [ ] At least two start configs selectable in tests
-- [ ] Wiki Home links this page; Packages lists `Game_Scenario`
+- [x] `game_scenario.ads/.adb` + tests green on main
+- [x] At least two start configs selectable in tests
+- [x] Wiki Home links this page; Packages lists `Game_Scenario`
 - [ ] Board card moves In progress → Done
 
 Hand-off: Ops owns Physical_Data numbers; ADA implements contracts from this Spec.
