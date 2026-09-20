@@ -51,7 +51,7 @@ procedure Tests_Ops_Scenario is
 begin
    TIO.Put_Line ("=== Game_Ops_Room / Game_Scenario ===");
 
-   Check (R.Floor_Area_M2 = 20, "Ops room floor area is 20 m2 (5x4 @ 1m)");
+   Check (R.Floor_Area_M2 = 9, "Ops room floor area is 9 m2 (3x3 @ 1m)");
    Check (R.Has_Center_Console (Room), "Ops room has center console island");
    Check
      (R.Cell_At (Room, Room.Console_X, Room.Console_Y).Kind = R.Console_Island,
