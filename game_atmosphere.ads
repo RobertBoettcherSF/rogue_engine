@@ -27,9 +27,10 @@ package Game_Atmosphere is
    Safe_O2_Partial_Min_kPa : constant := 16;
    Safe_O2_Partial_Max_kPa : constant := 24;
 
-   --  O2 draw rates (mL/min). Physical_Data resting 0.5 L/min; sleep ~0.35.
-   Resting_O2_mL_Per_Min : constant Positive := 500;
-   Sleep_O2_mL_Per_Min   : constant Positive := 350;
+   --  O2 draw rates (mL/min). Physical_Data Ops-locked ~0.84 kg/day ~= 408 mL/min;
+   --  sleep ~0.70x resting.
+   Resting_O2_mL_Per_Min : constant Positive := 408;
+   Sleep_O2_mL_Per_Min   : constant Positive := 286;
 
    --  Effective O2 partial pressure in kPa: floor(P * O2% / 100).
    function O2_Partial_kPa (Air : Tile_Atmosphere) return Natural
@@ -52,7 +53,8 @@ package Game_Atmosphere is
       Zone : Air_Zone := Cabin) return Tile_Atmosphere
    with Global => null;
 
-   --  Bunker / sealed cabin: ~101 kPa * 21% ≈ 21 kPa O2-partial.
+   --  Bunker / sealed cabin (Tiangong-like preview): ~101 kPa * 21% ≈ 21 kPa O2-partial
+   --  (DS propose O2-partial 19-30 kPa; Ops lock before widening autopilot band).
    function Cabin_Earth_Air
      (Volume_Liters : Positive := 44_000) return Tile_Atmosphere
    with
