@@ -76,18 +76,18 @@ package body Game_Messages is
    end Post;
 
    procedure Seed_Inbox (Box : in out Inbox; Planet : String) is
-      P : constant String :=
+      Dest : constant String :=
         (if Planet'Length = 0 then "destination" else Planet);
    begin
       Clear (Box);
-      --  (1) welcome STORY (communicator / values)
+      --  (1) welcome STORY for Passenger_P / P
       Post
         (Box,
          Story,
-         "Welcome aboard",
-         "Dear Passenger. Thank you for flying with Rogue Engine. "
+         "Welcome P",
+         "Dear P. Thank you for flying with Rogue Engine. "
            & "We hope you have a pleasant flight to and stay at "
-           & P
+           & Dest
            & ".");
       --  (2) technical-difficulties ANNOUNCEMENT (yellow / FUTURE)
       Post
