@@ -1,73 +1,86 @@
 # rogue_engine
 
-Clean-room **Ada 2022** engine for a **twofold** turn-based survival game: a human operator deep in a sealed bunker remote-running a rover through a Mars-like dust storm on Earth.
+Clean-room **Ada 2022** engine for a **twofold** turn-based survival game: a human operator deep in a sealed bunker remote-running a **Strider** (outdoor walking machine) through a Mars-like dust storm on Earth.
 
 **License:** MIT (see [LICENSE](LICENSE)). Code and docs stay MIT; art assets MIT or CC0 only. No third-party product names in documentation.
 
-Built step by step as strongly typed modules with contracts and a growing embedded suite (`tests.adb`). **Ada/SPARK first:** every design beat becomes typed packages, contracts, and tests — lore only counts once it is a package.
+Built as strongly typed modules with contracts and embedded suites (`tests.adb`, `tests_ops_scenario.adb`, `tests_demo.adb`). **Ada-only this phase** (including later screenshots): SPARK L2–L4 is **labeled now; formal prove later** — no `gnatprove` required yet. Lore only counts once it is a package.
+
+**Inventory SoT:** [docs/wiki/Packages.md](docs/wiki/Packages.md). Docs live under GitHub `docs/wiki/` only (not Trello).
 
 ## Premise (sim-backed)
 
 | Side | Where | Vitality |
 |------|--------|----------|
-| **Human** | Bunker, **4 floors** down; small sealed room air | **Tissue oxygenation** (not cartoon HP) |
-| **Robot / rover** | Outside in dust storm | **Power / hull / thermal** (no lungs) |
+| **Human** | Bunker, **4 floors** down; ops-room seat; sealed cabin air | **Tissue oxygenation** (+ hunger/thirst/fatigue); high-g → `Vision_Clarity` |
+| **Strider** (linked) | Outside in dust storm | **Power / hull / thermal** (no lungs) |
 
-Link: a **sealed double-door airlock** (never both open; chamber pressure cycles bunker ↔ storm). Outside: pressure crashed, cold, **visibility ~0**, blackout-dark though radio says midday, **aurora** over the storm; a **high satellite** still gives a coarse overhead picture. Player bunker room centers on a **mid-room console island** (headset ops).
+Strider demo stand-in: **5×10⁴ kg** empty, **1 m** step, **5×10² kg** payload, power in **kW** (full-class wiki mass ~1680 t → scale **≈ 1/34**). Vehicle mass is `Mass_Kilograms`; eat/drink stay grams. `Payload_Is_Trivial`: payload×10 ≤ empty.
+
+Link: sealed double-door airlock + remote pilot (`Strider_Walk` / `Turn` / `Scan`). Human **never** steps onto storm tiles while piloting. Outside: **20 kPa** (demo), cold, visibility ~0, aurora. EVA: ISS EMU-class **145 kg** worn (`Mass_Kilograms`, AP penalty; never Strength carry); suit loop **29.6 kPa / 100% O₂** healthy. Cabin ~101 kPa × 21% ≈ **21 kPa** O₂-partial; unsuited storm ≈ **4 kPa** — hypoxia.
 
 ## Goals
 
-- **Ada/SPARK first:** typed state + `Pre` / `Post` / `Global` + tests for each beat.
-- **Simulation-first:** world rules in Ada packages; graphics stay a thin, swappable layer (ASCII → tiles → sprites).
-- **Content-driven:** tiles/items/maps/factions → JSON/TOML later so artists do not compile Ada.
-- **Honest weight:** backpack load = Σ (hull mass + content mass); Solid / Liquid / Gas / Plasma; hull integrity 0–100% (≤50 opened, 0 ruptured); Strength×1 kg comfortable, 2× hard cap.
-- **Proof where it pays:** SPARK-first on core invariants; plain Ada for loaders/UI/content glue.
+- **Ada first, SPARK labeled:** typed state + `Pre`/`Post`/`Global` + tests; FUTURE L2–L4 comments on life-critical packages.
+- **Simulation-first:** world rules in Ada; graphics a thin swappable layer (ASCII → tiles → sprites).
+- **Content-driven:** tiles/items/maps → JSON/TOML later.
+- **Honest weight:** backpack = Σ (hull + content); Solid/Liquid/Gas/Plasma; integrity 0–100%.
+- **Docs:** `docs/wiki/` only; Packages.md is inventory SoT.
 
-## Status
+## Package inventory
 
-| Step | Package | Notes |
-|------|---------|--------|
-| 1 | `Game_Grid` | Points, terrain, 24×24 chunks, Chebyshev distance, LOS |
-| 2–4 | `Game_Actors` | `Human_Actor` (O₂ + `Bunker_Room` / `Breathe_In_Bunker`) · `Robot_Actor` (power/hull/thermal) · AP · adjacent `Move_To` |
-| 3 | `Game_Items` | Backpack; hull+content mass; °C; seal→access; can opener / drill sample / process; plasma breach = heat + burn/shock + game over |
-| 5 | `Game_Environment` | 4F depth · airlock · outdoor storm · satellite frame · aurora |
-| 6 | `Game_Dream_RSI` | Explore→Construct→Dream→Redeploy; discovery tree + policy improve |
-| Next | Turn clock | Priority queue / AP tick scheduling |
-| Next | Matter tools | `Siphon_Liquid` / `Bleed_Gas` (solid drill already shipped) |
-| Next | Player room | Central console object as typed bunker furniture |
+Mirror of [Packages.md](docs/wiki/Packages.md):
 
-**Tests:** `make test` — **108** assertions, zero warnings under `-gnatwa`.
+| Package | Role |
+|---------|------|
+| `Game_Grid` | Points, terrain, chunks, LOS |
+| `Game_Actors` | Human O₂/needs/sleep/breathe · `G_Load`/`Vision_Clarity` · Robot · AP |
+| `Game_Items` | Backpack; Sip/Bite; seal→access; drill/process; plasma |
+| `Game_Dream_RSI` | Explore→Construct→Dream→Redeploy |
+| `Game_Environment` | Bunker depth, airlock, storm, satellite, aurora |
+| `Game_Atmosphere` | Tile air; O₂-partial; cabin vs exterior |
+| `Game_Turn` | Turn / wall-minute clock; AP grant |
+| `Game_Demo` | Walk, eat/drink, tick+ECLSS, sleep/dream, Strider, Glance_Wrist, Passenger_Panel |
+| `Game_Passenger_Board` | OK/CAUTION/FAIL; g, MET, P, O₂/CO₂; vision-dim |
+| `Game_ECLSS` | Cabin ECLSS tick (Ops rates); SPARK FUTURE |
+| `Game_Suit` | EMU 145 kg; 29.6 kPa/100% O₂; Orlan alt |
+| `Game_Strider` | Vehicle kg/kW; demo 5×10⁴ kg; Payload_Is_Trivial |
+| `Game_Ops_Room` | 5×4 @ 1 m, ~44 m³ |
+| `Game_Scenario` | Starts; outdoor role default **Strider** |
+
+**Tests:** `make test` — core + ops scenario + demo (~95 demo asserts), zero warnings under `-gnatwa`.
 
 ## Architecture
 
 ```
-┌────────────────────────────────────────┐
+┌─────────────────────────────────────────────┐
 │  Front end (ASCII → 32px tiles → sprites)   │
-│  orange/teal terminal palette               │
-├────────────────────────────────────────┤
-│  Content schemas (JSON/TOML) + wiki lint    │
-├────────────────────────────────────────┤
-│  Ada sim (SPARK-friendly)                   │
-│  Game_Grid · Game_Actors · Game_Items       │
-│  Game_Environment · (turn clock next)       │
-└────────────────────────────────────────┘
+├─────────────────────────────────────────────┤
+│  docs/wiki/ (Packages.md = inventory SoT)   │
+├─────────────────────────────────────────────┤
+│  Ada sim (Ada-only now; SPARK prove later)  │
+│  Grid · Actors · Items · Environment        │
+│  Atmosphere · Turn · Suit · Strider · ECLSS │
+│  Passenger_Board · Demo (Strider link)      │
+└─────────────────────────────────────────────┘
 ```
-
-Bunker ops (human + mid-room console) and storm rover stay one game linked by the airlock. Wiki should be generated or linted from the same schemas so lore cannot drift from data.
 
 ## Build & test
 
 **Prerequisites:** GNAT / gprbuild (Ada 2022)
 
 ```bash
-make test
+make test    # tests + tests_ops_scenario + tests_demo
+make play    # ops-room + Strider demo sequence
 ```
 
 Clean with `make clean`. Flags: `-gnatwa -gnat2022`.
 
+Wiki: [Packages](docs/wiki/Packages.md) · [Demo](docs/wiki/Demo.md) · [Passenger_Board](docs/wiki/Passenger_Board.md) · [Strider](docs/wiki/Strider.md) · [Physical_Data](docs/wiki/Physical_Data.md) · [SI_Units](docs/wiki/SI_Units.md) · [Proof](docs/wiki/Proof.md).
+
 ## Contributing
 
-Land complete packages on `main` (`*.ads` / `*.adb`), extend `tests.adb`, update this README per step. Prefer contracts on public APIs.
+Land complete packages on `main`, extend tests, keep Packages.md and this README in sync (Packages is SoT). Prefer contracts on public APIs. No Trello.
 
 ## License
 
