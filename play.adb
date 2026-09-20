@@ -3,7 +3,7 @@
 --
 --  Interactive wrist terminal: fixed viewport (clear+home each frame).
 --  Layout: ASCII map | message | strip P_kPa O2_kPa g_eff uSv_h
---  Keys: WASD/hjkl move, M inbox, n next phase (debug), q quit.
+--  Keys: WASD/hjkl move, o door, u/U suit, M inbox, n phase, f field, q quit.
 
 pragma Ada_2022;
 
@@ -11,10 +11,11 @@ with Ada.Text_IO;
 with Ada.Integer_Text_IO;
 with Ada.Characters.Latin_1;
 
+with Game_Atmosphere;
 with Game_Demo;
+with Game_Environment;
 with Game_Messages;
 with Game_Ops_Room;
-with Game_Environment;
 with Game_Passenger_Board;
 with Game_Story_Arc;
 
@@ -41,6 +42,21 @@ procedure Play is
       TIO.Put (ESC & "[2J" & ESC & "[H");
    end Clear_Frame;
 
+   function Door_Open_Flag
+     (Kind : Game_Ops_Room.Cell_Kind) return Boolean
+   is
+   begin
+      case Kind is
+         when Game_Ops_Room.Airlock_Door =>
+            return State.Lock.Inner = Game_Environment.Open;
+         when Game_Ops_Room.Outer_Door =>
+            return State.Lock.Outer = Game_Environment.Open;
+         when others =>
+            return False;
+      end case;
+   end Door_Open_Flag;
+
+   --  Bind door glyph to real open flag: '+' closed, '.' open.
    function Cell_Glyph
      (Room : Game_Ops_Room.Ops_Room;
       X    : Game_Ops_Room.Width_Index;
@@ -60,20 +76,41 @@ procedure Play is
             return '=';
          when Game_Ops_Room.Operator_Seat =>
             return 'h';
-         when Game_Ops_Room.Airlock_Door =>
-            --  Bunker-side airlock leaf: + closed, . open
-            if State.Lock.Inner = Game_Environment.Open then
+         when Game_Ops_Room.Airlock_Door | Game_Ops_Room.Outer_Door =>
+            if Door_Open_Flag (C.Kind) then
                return '.';
             else
                return '+';
             end if;
+         when Game_Ops_Room.Suit_Hook =>
+            if Room.Suit_On_Hook then
+               return 'S';
+            else
+               return 's';
+            end if;
       end case;
    end Cell_Glyph;
+
+   function Tile_Walkable
+     (Room : Game_Ops_Room.Ops_Room;
+      X    : Game_Ops_Room.Width_Index;
+      Y    : Game_Ops_Room.Depth_Index) return Boolean
+   is
+      C : constant Game_Ops_Room.Room_Cell := Game_Ops_Room.Cell_At (Room, X, Y);
+   begin
+      case C.Kind is
+         when Game_Ops_Room.Airlock_Door | Game_Ops_Room.Outer_Door =>
+            return Door_Open_Flag (C.Kind);
+         when others =>
+            return Game_Ops_Room.Is_Passable (Room, X, Y);
+      end case;
+   end Tile_Walkable;
+
 
    procedure Put_Map is
       Room : constant Game_Ops_Room.Ops_Room := State.Ops;
    begin
-      TIO.Put_Line ("rogue_engine  @=P  WASD move  M=msg  n=phase  f=field  q=quit");
+      TIO.Put_Line ("rogue_engine  @=P  WASD  o=door  u/U=suit  M=msg  n=phase  f=field  q=quit");
       for Y in reverse Game_Ops_Room.Depth_Index loop
          for X in Game_Ops_Room.Width_Index loop
             TIO.Put (Cell_Glyph (Room, X, Y));
@@ -149,7 +186,7 @@ procedure Play is
    procedure Put_Strip is
       Board : constant Game_Passenger_Board.Passenger_Board :=
                 Game_Demo.Passenger_Panel (State);
-      G10 : constant Natural := Natural (Arc.G_Load_Tenths);
+      G10 : constant Natural := Natural (Board.Current_G_Tenths);
    begin
       TIO.Put_Line ("---- P strip ----");
       TIO.Put ("P_kPa=");
@@ -164,7 +201,9 @@ procedure Play is
       TIO.Put (Game_Story_Arc.Format_Rad (Arc.Rad_uSv_h));
       TIO.Put ("  [");
       TIO.Put (Game_Story_Arc.Rad_Band_Label (Arc.Rad_uSv_h));
-      TIO.Put ("]  phase=");
+      TIO.Put ("]  ");
+      TIO.Put (Game_Passenger_Board.Status_Label (Board.Cabin_Status));
+      TIO.Put ("  phase=");
       TIO.Put_Line (Game_Story_Arc.Phase_Name (Arc.Phase));
    end Put_Strip;
 
@@ -195,19 +234,149 @@ procedure Play is
       TIO.Flush;
    end Draw;
 
+   procedure Try_Open_Inner is
+   begin
+      Game_Environment.Close_Outer (State.Lock);
+      Game_Environment.Cycle_To_Bunker (State.Lock);
+      Game_Environment.Open_Inner (State.Lock);
+      State.Human_Zone := Game_Atmosphere.Cabin;
+   exception
+      when Game_Environment.Both_Doors_Open_Error
+         | Game_Environment.Pressure_Unsafe_Error =>
+         null;
+   end Try_Open_Inner;
+
+   procedure Try_Open_Outer is
+   begin
+      Game_Demo.Exit_To_Storm (State);
+   exception
+      when Game_Demo.Suit_Required =>
+         Game_Messages.Push_Watchdog
+           (Mail, Game_Messages.Caution, "Suit required",
+            "Outer door: seal EMU (u on S) before opening.");
+      when Game_Environment.Both_Doors_Open_Error
+         | Game_Environment.Pressure_Unsafe_Error =>
+         null;
+   end Try_Open_Outer;
+
+   procedure Toggle_Door_At
+     (X : Game_Ops_Room.Width_Index;
+      Y : Game_Ops_Room.Depth_Index)
+   is
+      C : constant Game_Ops_Room.Room_Cell :=
+        Game_Ops_Room.Cell_At (State.Ops, X, Y);
+   begin
+      case C.Kind is
+         when Game_Ops_Room.Airlock_Door =>
+            if State.Lock.Inner = Game_Environment.Open then
+               Game_Environment.Close_Inner (State.Lock);
+            else
+               Try_Open_Inner;
+            end if;
+         when Game_Ops_Room.Outer_Door =>
+            if State.Lock.Outer = Game_Environment.Open then
+               Game_Demo.Return_To_Cabin (State);
+               Game_Environment.Close_Inner (State.Lock);
+            else
+               Try_Open_Outer;
+            end if;
+         when others =>
+            null;
+      end case;
+   end Toggle_Door_At;
+
+   procedure Try_Door_Key is
+      Room : constant Game_Ops_Room.Ops_Room := State.Ops;
+      C    : constant Game_Ops_Room.Room_Cell :=
+        Game_Ops_Room.Cell_At (Room, PX, PY);
+      NX, NY : Integer;
+   begin
+      if C.Kind = Game_Ops_Room.Airlock_Door
+        or else C.Kind = Game_Ops_Room.Outer_Door
+      then
+         Toggle_Door_At (PX, PY);
+         return;
+      end if;
+      for DX in -1 .. 1 loop
+         for DY in -1 .. 1 loop
+            if abs DX + abs DY = 1 then
+               NX := Integer (PX) + DX;
+               NY := Integer (PY) + DY;
+               if NX in Game_Ops_Room.Width_Index'Range
+                 and then NY in Game_Ops_Room.Depth_Index'Range
+               then
+                  declare
+                     K : constant Game_Ops_Room.Cell_Kind :=
+                       Game_Ops_Room.Cell_At
+                         (Room,
+                          Game_Ops_Room.Width_Index (NX),
+                          Game_Ops_Room.Depth_Index (NY)).Kind;
+                  begin
+                     if K = Game_Ops_Room.Airlock_Door
+                       or else K = Game_Ops_Room.Outer_Door
+                     then
+                        Toggle_Door_At
+                          (Game_Ops_Room.Width_Index (NX),
+                           Game_Ops_Room.Depth_Index (NY));
+                        return;
+                     end if;
+                  end;
+               end if;
+            end if;
+         end loop;
+      end loop;
+   end Try_Door_Key;
+
+   procedure Try_Don_Suit is
+      C : constant Game_Ops_Room.Room_Cell :=
+        Game_Ops_Room.Cell_At (State.Ops, PX, PY);
+   begin
+      if C.Kind /= Game_Ops_Room.Suit_Hook or else not State.Ops.Suit_On_Hook then
+         return;
+      end if;
+      Game_Demo.Don_EVA (State);
+      State.Ops.Suit_On_Hook := False;
+   end Try_Don_Suit;
+
+   procedure Try_Doff_Suit is
+      C : constant Game_Ops_Room.Room_Cell :=
+        Game_Ops_Room.Cell_At (State.Ops, PX, PY);
+   begin
+      if C.Kind /= Game_Ops_Room.Suit_Hook or else State.Ops.Suit_On_Hook then
+         return;
+      end if;
+      if not State.Suit.Suit_Worn then
+         return;
+      end if;
+      Game_Demo.Doff_EVA (State);
+      State.Ops.Suit_On_Hook := True;
+   end Try_Doff_Suit;
+
    procedure Try_Move (DX, DY : Integer) is
       NX : constant Integer := Integer (PX) + DX;
       NY : constant Integer := Integer (PY) + DY;
+      TX : Game_Ops_Room.Width_Index;
+      TY : Game_Ops_Room.Depth_Index;
+      C  : Game_Ops_Room.Room_Cell;
    begin
-      if NX in Game_Ops_Room.Width_Index'Range
-        and then NY in Game_Ops_Room.Depth_Index'Range
-        and then Game_Ops_Room.Is_Passable
-                   (State.Ops,
-                    Game_Ops_Room.Width_Index (NX),
-                    Game_Ops_Room.Depth_Index (NY))
+      if NX not in Game_Ops_Room.Width_Index'Range
+        or else NY not in Game_Ops_Room.Depth_Index'Range
       then
-         PX := Game_Ops_Room.Width_Index (NX);
-         PY := Game_Ops_Room.Depth_Index (NY);
+         return;
+      end if;
+      TX := Game_Ops_Room.Width_Index (NX);
+      TY := Game_Ops_Room.Depth_Index (NY);
+      C := Game_Ops_Room.Cell_At (State.Ops, TX, TY);
+      if (C.Kind = Game_Ops_Room.Airlock_Door
+          or else C.Kind = Game_Ops_Room.Outer_Door)
+        and then not Door_Open_Flag (C.Kind)
+      then
+         Toggle_Door_At (TX, TY);
+         return;
+      end if;
+      if Tile_Walkable (State.Ops, TX, TY) then
+         PX := TX;
+         PY := TY;
          Game_Demo.Tick (State);
          Game_Story_Arc.Tick_Sensors (Arc, State.Human, 1);
       end if;
@@ -265,6 +434,12 @@ begin
             end;
          when 'n' | 'N' =>
             Game_Story_Arc.Advance_Phase (Arc, State.Human, Mail, "station");
+         when 'o' | 'O' =>
+            Try_Door_Key;
+         when 'u' =>
+            Try_Don_Suit;
+         when 'U' =>
+            Try_Doff_Suit;
          when 'f' | 'F' =>
             if Arc.G_Load_Tenths = 0 then
                Game_Story_Arc.Set_Force_Field (Arc, State.Human, 10);
