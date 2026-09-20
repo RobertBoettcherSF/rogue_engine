@@ -6,14 +6,15 @@ pragma Ada_2022;
 with Game_Atmosphere;
 
 --  Cabin ECLSS scrubber / O2 make-up. Rates from Physical_Data (Ops-locked).
---  SPARK L2-style: Global => null, Pre/Post on Tick_Cabin core.
---  SPARK: L2 floor; L3/L4 candidate (IRL life-critical: cabin scrubber / O2 make-up tick)
+--  Contracts: Global/Pre/Post Ada style (proof FUTURE).
+--  SPARK: FUTURE climb — L2–L4 candidate (IRL life-critical: cabin ECLSS tick). Ada-only this phase; no gnatprove required.
 package Game_ECLSS is
    use type Game_Atmosphere.Air_Zone;
 
 
    --  ----- Ops-locked (Physical_Data ECLSS) -----
-   --  Per person metabolic: ~1.0 kg CO2/day, ~0.84 kg O2/day.
+   --  Per person metabolic SoT: ~1.0 kg CO2/day, ~0.84 kg O2/day awake
+   --  (sleep ~0.7x is Game_Atmosphere.Sleep_O2_mL_Per_Min).
    --  ISS-class scrubber ~6 kg CO2/day; OGA ~2.3-9.3 kg O2/day (demo uses low end).
    --  STP convert: mL/min = kg/day * 1000 / MW * 22400 / 1440.
 
