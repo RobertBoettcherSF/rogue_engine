@@ -1,25 +1,25 @@
 # Messages (communicator inbox)
 
-Incoming only for now (list / read / archive / delete). No compose.
+Incoming only (list / read / archive / delete). No compose yet.
 
 ## Kinds
 
-| Kind | Role | Examples |
-|------|------|----------|
-| **STORY** | narrative | welcome / flight to &lt;Planetname&gt; |
-| **ANNOUNCEMENT** | general PA | technical difficulties |
-| **CAUTION** | soft systems | O2 drifting, CO2 up, greyout |
-| **ALERT** | hard FAIL | hypoxia, pierce, Armstrong, blackout |
-| **GUIDANCE** | nav | course set / distance m |
+| Kind | Role |
+|------|------|
+| **STORY** | narrative (optional fiction) |
+| **ANNOUNCEMENT** | general PA |
+| **CAUTION** | soft systems |
+| **ALERT** | hard FAIL |
+| **GUIDANCE** | nav |
 
-Watchdog pushes CAUTION/ALERT from SI. STORY/ANNOUNCEMENT are scripted. GUIDANCE from wrist-map.
+## IRL / life-critical priority (locked)
+
+- **ALERT / CAUTION never wait on STORY.**
+- **STORY never rewrites SI numbers.**
+- Life path = raw **kPa / s / kg** + locked trips (O2 **FAIL &lt;16 kPa**, CO2 **FAIL ≥3 kPa**, Armstrong **6.3 kPa**, seal). Fiction is optional chrome; the watchdog is the product.
 
 ## Seeds
 
-**STORY:** Dear Passenger… pleasant flight to and stay at **&lt;Planetname&gt;**.
+**STORY:** Dear Passenger… flight to **&lt;Planetname&gt;**.
 
 **ANNOUNCEMENT:** We are experiencing technical difficulties. Please observe and follow instructions from flight personnel.
-
-## Game vs IRL suit cuff
-
-Same Ada core (P, O2-partial, seal, timer, CAUTION/ALERT). STORY optional for fiction; life-critical path always on. L2–L4 labeled for later prove.
