@@ -72,14 +72,16 @@ package body Game_Actors is
    is
    begin
       Self :=
-        (Position    => Location,
-         Speed       => Speed,
-         AP          => 0,
-         Oxygenation => 100,
-         Hunger      => 40,
-         Thirst      => 40,
-         Fatigue     => 60,
-         Sleeping    => False);
+        (Position        => Location,
+         Speed           => Speed,
+         AP              => 0,
+         Oxygenation     => 100,
+         Hunger          => 40,
+         Thirst          => 40,
+         Fatigue         => 60,
+         Sleeping        => False,
+         G_Load          => 10,
+         Vision_Clarity  => 100);
    end Initialize_Human;
 
    procedure Initialize_Robot
@@ -218,6 +220,66 @@ package body Game_Actors is
    begin
       Self.Sleeping := False;
    end Wake;
+
+
+   function Is_Blacked_Out (Self : Human_Actor) return Boolean is
+   begin
+      return Self.Vision_Clarity = 0;
+   end Is_Blacked_Out;
+
+   function Can_Raise_Arm (Self : Human_Actor) return Boolean is
+   begin
+      --  Blackout blocks voluntary glance; ~5 g (20% clarity) still may glance
+      --  (garbled). Passenger_Board / Physical_Data cuff.
+      if Self.Sleeping or else Is_Blacked_Out (Self) then
+         return False;
+      end if;
+      return True;
+   end Can_Raise_Arm;
+
+   function Glance_AP_Cost (Self : Human_Actor) return Natural is
+   begin
+      if Self.G_Load <= 12 then
+         return 0;  -- soft coast / ~1 g
+      elsif Self.G_Load <= 25 then
+         return 1;  -- mild thrust
+      elsif Self.G_Load <= 40 then
+         return 2;
+      else
+         return 3;  -- high thrust (still may Can_Raise_Arm if < 5 g)
+      end if;
+   end Glance_AP_Cost;
+
+   procedure Set_G_Load
+     (Self : in out Human_Actor;
+      Load : G_Load_Tenths)
+   is
+   begin
+      Self.G_Load := Load;
+   end Set_G_Load;
+
+   procedure Set_Vision_Clarity
+     (Self    : in out Human_Actor;
+      Clarity : Vision_Clarity_Percent)
+   is
+   begin
+      Self.Vision_Clarity := Clarity;
+   end Set_Vision_Clarity;
+
+   procedure Apply_G_Vision_Effects (Self : in out Human_Actor) is
+   begin
+      --  Passenger_Board Ops+DS: clear <=3 g; tunnel 3.5-4.5; ~20% at ~5 g;
+      --  blackout >5 g. G_Load is tenths of g (50 = 5.0 g).
+      if Self.G_Load >= 55 then
+         Self.Vision_Clarity := 0;       -- blackout
+      elsif Self.G_Load >= 46 then
+         Self.Vision_Clarity := 20;      -- ~5 g: heavy dim, ~20% readable
+      elsif Self.G_Load >= 35 then
+         Self.Vision_Clarity := 40;      -- 3.5-4.5 g: tunnel / grey
+      else
+         Self.Vision_Clarity := 100;     -- <= ~3 g clear
+      end if;
+   end Apply_G_Vision_Effects;
 
    procedure Adjust_Power
      (Self   : in out Robot_Actor;
