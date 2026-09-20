@@ -21,6 +21,17 @@ Cabin green display: Atm_Fraction **0.90–1.10** (Earth=1.00). Passenger: NOMIN
 
 ---
 
+## Cabin / suit air warning ladder (DS SI)
+
+| Quantity | NOMINAL | CAUTION | FAIL |
+|----------|---------|---------|------|
+| O2-partial | **16–24 kPa** green | **>24 kPa** (cabin still allows ~**19–30**) | **only <16 kPa** |
+| CO2-partial | ≤0.4 kPa | **>0.4 kPa** (Ada int: ≥1 kPa) | **≥3 kPa** |
+
+Sealed EMU pure-O2 (~29.6 kPa) stays **NOMINAL** on the suit loop. Pierce → unseal → ambient; Armstrong **~6.3 kPa** suit P = hard FAIL.
+
+---
+
 ## Metabolic / ECLSS / suit / strider
 
 Awake 0.84 kg O2 + 1.0 kg CO2 /day. ECLSS demo 1× scrub 1.0 / make-up 0.84. EMU ~145 kg, 29.6 kPa pure O2. Strider full 1.68e6 / 1e5 kg.
