@@ -2,16 +2,21 @@ pragma Ada_2022;
 with Ada.Text_IO;
 with Game_Demo;
 with Game_Environment;
+with Game_Grid;
+with Game_Ops_Room;
 with Game_Passenger_Board;
 with Game_Suit;
 procedure Tests_Demo is
  package TIO renames Ada.Text_IO;
  package D renames Game_Demo;
  package E renames Game_Environment;
+ package G renames Game_Grid;
+ package R renames Game_Ops_Room;
  package Pb renames Game_Passenger_Board;
  package Su renames Game_Suit;
  use type Pb.Cabin_Status_Kind;
  use type E.Door_State;
+ use type G.Coordinate;
  Failed, Passed : Natural := 0;
  procedure Check (Condition : Boolean; Message : String) is
  begin
@@ -28,6 +33,16 @@ procedure Tests_Demo is
 begin
  TIO.Put_Line ("=== Demo SI lock ===");
  D.Start_Demo (State);
+ declare
+  Dest : constant G.Point := (X => 1, Y => 2);
+ begin
+  Check (R.Floor_Area_M2 = 9, "Ops floor area 9 m2 (3x3)");
+  Check (R.Is_Passable (State.Ops, 1, 2), "Tile (1,2) passable floor");
+  D.Walk (State, Dest);
+  Check
+    (State.Human.Position.X = 1 and then State.Human.Position.Y = 2,
+     "Walk to side floor (1,2)");
+ end;
  Board := D.Passenger_Panel (State);
  Check (Board.Cabin_P_kPa = 101, "Cabin strip P 101 before outer open");
  Check (Board.O2_Partial_kPa = 21, "Cabin strip O2p 21");
