@@ -82,19 +82,23 @@ package body Game_Items is
         (Slots =>
            [others =>
               (Hull_Mass        => 0,
-               Integrity        => 100,
+               Integrity         => 100,
+               Hull_Temp_C      => 20,
                Content_State    => Solid,
                Content_Mass     => 0,
-               Content_Capacity => 0)],
+               Content_Capacity => 0,
+               Content_Temp_C   => 20)],
          Count => 0);
    end Clear;
 
    function Make_Container
      (Hull_Mass        : Mass_Grams;
       Integrity        : Integrity_Percent;
+      Hull_Temp_C      : Celsius_Degrees;
       Content_State    : Matter_State;
       Content_Mass     : Mass_Grams;
-      Content_Capacity : Mass_Grams) return Container
+      Content_Capacity : Mass_Grams;
+      Content_Temp_C   : Celsius_Degrees) return Container
    is
    begin
       if Content_Mass > Content_Capacity then
@@ -103,9 +107,11 @@ package body Game_Items is
       return
         (Hull_Mass        => Hull_Mass,
          Integrity        => Integrity,
+         Hull_Temp_C      => Hull_Temp_C,
          Content_State    => Content_State,
          Content_Mass     => Content_Mass,
-         Content_Capacity => Content_Capacity);
+         Content_Capacity => Content_Capacity,
+         Content_Temp_C   => Content_Temp_C);
    end Make_Container;
 
    procedure Add_Container
@@ -135,10 +141,12 @@ package body Game_Items is
       end if;
       Pack.Slots (Pack.Count) :=
         (Hull_Mass        => 0,
-         Integrity        => 100,
+         Integrity         => 100,
+         Hull_Temp_C      => 20,
          Content_State    => Solid,
          Content_Mass     => 0,
-         Content_Capacity => 0);
+         Content_Capacity => 0,
+         Content_Temp_C   => 20);
       Pack.Count := Pack.Count - 1;
    end Remove_Last;
 
@@ -153,5 +161,54 @@ package body Game_Items is
          C.Integrity := C.Integrity - Amount;
       end if;
    end Damage_Hull;
+
+   procedure Set_Temperatures
+     (C              : in out Container;
+      Hull_Temp_C    : Celsius_Degrees;
+      Content_Temp_C : Celsius_Degrees)
+   is
+   begin
+      C.Hull_Temp_C := Hull_Temp_C;
+      C.Content_Temp_C := Content_Temp_C;
+   end Set_Temperatures;
+
+   function Is_Too_Hot_To_Handle (C : Container) return Boolean is
+   begin
+      return C.Hull_Temp_C > Max_Safe_Hull_C;
+   end Is_Too_Hot_To_Handle;
+
+   function Can_Access_Content (C : Container) return Boolean is
+   begin
+      return C.Integrity > 0
+        and then C.Integrity <= Access_Integrity_Threshold;
+   end Can_Access_Content;
+
+   function Access_Content_Mass (C : Container) return Mass_Grams is
+   begin
+      if C.Integrity = 0 then
+         if C.Content_State = Plasma and then C.Content_Mass > 0 then
+            raise Plasma_Containment_Lost;
+         end if;
+         raise Hull_Ruptured_Error;
+      end if;
+      if not Can_Access_Content (C) then
+         raise Content_Sealed_Error;
+      end if;
+      return C.Content_Mass;
+   end Access_Content_Mass;
+
+   function Is_Plasma_Catastrophe (C : Container) return Boolean is
+   begin
+      return C.Content_State = Plasma
+        and then C.Content_Mass > 0
+        and then C.Integrity = 0;
+   end Is_Plasma_Catastrophe;
+
+   procedure Check_Containment (C : Container) is
+   begin
+      if Is_Plasma_Catastrophe (C) then
+         raise Plasma_Containment_Lost;
+      end if;
+   end Check_Containment;
 
 end Game_Items;

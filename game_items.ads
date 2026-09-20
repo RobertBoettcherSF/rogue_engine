@@ -27,7 +27,8 @@ pragma Ada_2022;
 --  Model:
 --    Backpack.Total_Load = sum over slots of (Hull_Mass + Content_Mass)
 --    Container holds Solid | Liquid | Gas | Plasma content
---    Hull_Integrity 0..100 (0 = ruptured)
+--    Hull integrity 0..100 (0 = ruptured)
+--    Hull_Temp_C and Content_Temp_C in Celsius (rover-grade telemetry)
 --
 --  Calibration: Comfortable_Capacity_G (S) = S * 1_000
 --  (Strength 5 => 5 kg). Hard_Capacity_G = 2x (Strength 5 => 10 kg).
@@ -39,6 +40,16 @@ package Game_Items is
    --  Hull structural health: 100 intact, 0 ruptured / useless seal.
    subtype Integrity_Percent is Natural range 0 .. 100;
 
+   --  Celsius; floor at absolute zero, ceiling for plasma / industrial heat.
+   subtype Celsius_Degrees is Integer range -273 .. 10_000;
+
+   --  Bare-hand safe band for hull contact (fun, not a physics lecture).
+   Max_Safe_Hull_C : constant Celsius_Degrees := 60;
+
+   --  Hull must be at or below this integrity before content can be accessed
+   --  (opening / breaching the seal). 100 = fully sealed, inaccessible.
+   Access_Integrity_Threshold : constant Integrity_Percent := 50;
+
    type Matter_State is (Solid, Liquid, Gas, Plasma);
 
    Max_Backpack_Slots : constant := 32;
@@ -46,11 +57,13 @@ package Game_Items is
    subtype Slot_Index is Positive range 1 .. Max_Backpack_Slots;
 
    type Container is record
-      Hull_Mass         : Mass_Grams     := 0;
-      Integrity         : Integrity_Percent := 100;
-      Content_State     : Matter_State   := Solid;
-      Content_Mass      : Mass_Grams     := 0;
-      Content_Capacity  : Mass_Grams     := 0;
+      Hull_Mass         : Mass_Grams        := 0;
+      Integrity         : Integrity_Percent  := 100;
+      Hull_Temp_C       : Celsius_Degrees   := 20;
+      Content_State     : Matter_State      := Solid;
+      Content_Mass      : Mass_Grams        := 0;
+      Content_Capacity  : Mass_Grams        := 0;
+      Content_Temp_C    : Celsius_Degrees   := 20;
    end record;
 
    type Container_Array is array (Slot_Index) of Container;
@@ -61,9 +74,11 @@ package Game_Items is
         [others =>
            (Hull_Mass        => 0,
             Integrity        => 100,
+            Hull_Temp_C      => 20,
             Content_State    => Solid,
             Content_Mass     => 0,
-            Content_Capacity => 0)];
+            Content_Capacity => 0,
+            Content_Temp_C   => 20)];
       Count : Slot_Count := 0;
    end record;
 
@@ -72,6 +87,8 @@ package Game_Items is
    Carry_Limit_Exceeded     : exception;
    Content_Capacity_Error   : exception;
    Hull_Ruptured_Error      : exception;
+   Content_Sealed_Error     : exception;  -- hull still too intact to open
+   Plasma_Containment_Lost  : exception;  -- ruptured plasma => game over
 
    function Comfortable_Capacity_G
      (Strength : Strength_Level) return Mass_Grams
@@ -132,9 +149,11 @@ package Game_Items is
    function Make_Container
      (Hull_Mass        : Mass_Grams;
       Integrity        : Integrity_Percent;
+      Hull_Temp_C      : Celsius_Degrees;
       Content_State    : Matter_State;
       Content_Mass     : Mass_Grams;
-      Content_Capacity : Mass_Grams) return Container
+      Content_Capacity : Mass_Grams;
+      Content_Temp_C   : Celsius_Degrees) return Container
    with
      Global => null,
      Pre    =>
@@ -143,7 +162,9 @@ package Game_Items is
      Post   =>
        Make_Container'Result.Hull_Mass = Hull_Mass
        and then Make_Container'Result.Content_Mass = Content_Mass
-       and then Make_Container'Result.Content_State = Content_State;
+       and then Make_Container'Result.Content_State = Content_State
+       and then Make_Container'Result.Hull_Temp_C = Hull_Temp_C
+       and then Make_Container'Result.Content_Temp_C = Content_Temp_C;
 
    --  Place container in backpack if slot free and hard carry allows.
    procedure Add_Container
@@ -164,6 +185,52 @@ package Game_Items is
    procedure Damage_Hull
      (C      : in out Container;
       Amount : Integrity_Percent)
+   with Global => null;
+
+   procedure Set_Temperatures
+     (C             : in out Container;
+      Hull_Temp_C   : Celsius_Degrees;
+      Content_Temp_C : Celsius_Degrees)
+   with
+     Global => null,
+     Post   =>
+       C.Hull_Temp_C = Hull_Temp_C
+       and then C.Content_Temp_C = Content_Temp_C;
+
+   --  True when hull is hotter than Max_Safe_Hull_C (bare-hand risk).
+   function Is_Too_Hot_To_Handle (C : Container) return Boolean
+   with
+     Global => null,
+     Post   =>
+       Is_Too_Hot_To_Handle'Result = (C.Hull_Temp_C > Max_Safe_Hull_C);
+
+   --  Content is reachable only after hull integrity is lowered enough
+   --  (breached/opened). Fully sealed cans (Integrity > threshold) stay closed.
+   function Can_Access_Content (C : Container) return Boolean
+   with
+     Global => null,
+     Post   =>
+       Can_Access_Content'Result =
+         (C.Integrity > 0
+          and then C.Integrity <= Access_Integrity_Threshold);
+
+   --  Mass of accessible content; raises Content_Sealed_Error if still sealed,
+   --  Hull_Ruptured_Error if integrity is 0 (and plasma raises Plasma_Containment_Lost).
+   function Access_Content_Mass (C : Container) return Mass_Grams
+   with Global => null;
+
+   --  Ruptured plasma container: containment lost => game over signal.
+   function Is_Plasma_Catastrophe (C : Container) return Boolean
+   with
+     Global => null,
+     Post   =>
+       Is_Plasma_Catastrophe'Result =
+         (C.Content_State = Plasma
+          and then C.Content_Mass > 0
+          and then C.Integrity = 0);
+
+   --  After Damage_Hull, call to enforce plasma rupture = game over.
+   procedure Check_Containment (C : Container)
    with Global => null;
 
 end Game_Items;

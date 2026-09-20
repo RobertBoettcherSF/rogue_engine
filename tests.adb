@@ -199,40 +199,50 @@ begin
         I.Make_Container
           (Hull_Mass        => 200,
            Integrity        => 100,
+           Hull_Temp_C      => 20,
            Content_State    => I.Solid,
            Content_Mass     => 0,
-           Content_Capacity => 5_000);
+           Content_Capacity => 5_000,
+           Content_Temp_C   => 20);
       --  Water can: 300 g hull + 4.5 kg liquid = 4.8 kg total.
       Water_Can : constant I.Container :=
         I.Make_Container
           (Hull_Mass        => 300,
            Integrity        => 100,
+           Hull_Temp_C      => 20,
            Content_State    => I.Liquid,
            Content_Mass     => 4_500,
-           Content_Capacity => 5_000);
+           Content_Capacity => 5_000,
+           Content_Temp_C   => 20);
       --  Heavy solid sack in a 500 g bag = 5.5 kg (over comfortable at Str 5).
       Potato_Bag : constant I.Container :=
         I.Make_Container
           (Hull_Mass        => 500,
            Integrity        => 100,
+           Hull_Temp_C      => 20,
            Content_State    => I.Solid,
            Content_Mass     => 5_000,
-           Content_Capacity => 5_000);
+           Content_Capacity => 5_000,
+           Content_Temp_C   => 20);
       --  Exactly 10 kg hard-cap load (200 g hull + 9.8 kg gas cylinder).
       Gas_Cylinder : constant I.Container :=
         I.Make_Container
           (Hull_Mass        => 200,
            Integrity        => 100,
+           Hull_Temp_C      => 20,
            Content_State    => I.Gas,
            Content_Mass     => 9_800,
-           Content_Capacity => 10_000);
+           Content_Capacity => 10_000,
+           Content_Temp_C   => 20);
       Light : constant I.Container :=
         I.Make_Container
           (Hull_Mass        => 100,
            Integrity        => 100,
+           Hull_Temp_C      => 20,
            Content_State    => I.Solid,
            Content_Mass     => 400,
-           Content_Capacity => 500);
+           Content_Capacity => 500,
+           Content_Temp_C   => 20);
       Cans   : I.Container;
       Raised : Boolean;
    begin
@@ -305,14 +315,71 @@ begin
       end;
       Check (Raised, "Remove_Last on empty raises Backpack_Empty_Error");
 
+      --  Temperature
       Cans := Water_Can;
-      Check (I.Is_Hull_Intact (Cans), "Fresh can hull is intact");
-      I.Damage_Hull (Cans, 100);
-      Check (Cans.Integrity = 0, "Full damage ruptures hull");
+      Check (Cans.Hull_Temp_C = 20, "Default hull temp is 20 C");
+      Check (Cans.Content_Temp_C = 20, "Default content temp is 20 C");
+      Check (not I.Is_Too_Hot_To_Handle (Cans), "Room-temp can is safe to handle");
+      I.Set_Temperatures (Cans, Hull_Temp_C => 85, Content_Temp_C => 95);
+      Check (Cans.Hull_Temp_C = 85, "Set_Temperatures updates hull");
+      Check (I.Is_Too_Hot_To_Handle (Cans), "85 C hull is too hot to handle");
+
+      --  Must weaken hull before accessing content
+      Cans := Water_Can;
+      Check (not I.Can_Access_Content (Cans), "Sealed can (integrity 100) is closed");
+      Raised := False;
+      begin
+         declare
+            Ignored : constant I.Mass_Grams := I.Access_Content_Mass (Cans);
+         begin
+            pragma Unreferenced (Ignored);
+         end;
+      exception
+         when I.Content_Sealed_Error =>
+            Raised := True;
+      end;
+      Check (Raised, "Sealed access raises Content_Sealed_Error");
+
+      I.Damage_Hull (Cans, 60);  -- 100 -> 40 (<= threshold 50)
+      Check (Cans.Integrity = 40, "Hull integrity lowered to 40");
+      Check (I.Can_Access_Content (Cans), "Weakened hull allows content access");
+      Check (I.Access_Content_Mass (Cans) = 4_500, "Opened can yields 4.5 kg water");
+      Check (I.Is_Hull_Intact (Cans), "Integrity 40 hull is still intact (not ruptured)");
+
+      --  Full rupture of ordinary liquid: ruptured, not plasma catastrophe
+      I.Damage_Hull (Cans, 40);
+      Check (Cans.Integrity = 0, "Further damage ruptures hull");
       Check (not I.Is_Hull_Intact (Cans), "Ruptured hull is not intact");
       Check
-        (I.Container_Mass (Cans) = 4_800,
-         "Rupture does not change recorded mass yet");
+        (not I.Is_Plasma_Catastrophe (Cans),
+         "Ruptured water is not a plasma catastrophe");
+
+      --  Plasma rupture = game over
+      declare
+         Plasma_Cell : I.Container :=
+           I.Make_Container
+             (Hull_Mass        => 500,
+              Integrity        => 100,
+              Hull_Temp_C      => 200,
+              Content_State    => I.Plasma,
+              Content_Mass     => 100,
+              Content_Capacity => 200,
+              Content_Temp_C   => 5_000);
+         Boom : Boolean := False;
+      begin
+         Check
+           (not I.Is_Plasma_Catastrophe (Plasma_Cell),
+            "Sealed plasma cell is contained");
+         I.Damage_Hull (Plasma_Cell, 100);
+         Check (I.Is_Plasma_Catastrophe (Plasma_Cell), "Ruptured plasma is catastrophe");
+         begin
+            I.Check_Containment (Plasma_Cell);
+         exception
+            when I.Plasma_Containment_Lost =>
+               Boom := True;
+         end;
+         Check (Boom, "Check_Containment raises Plasma_Containment_Lost (game over)");
+      end;
    end;
 
 
