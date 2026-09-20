@@ -6,7 +6,22 @@ Owner: Operations Manager. Consumers include `Game_Environment`, `Game_Actors`, 
 
 Unit convention: [SI_Units.md](SI_Units.md).
 
-SI-audit (Data Scientist): EMU / Orlan table **pass**.
+SI-audit (Data Scientist): EMU / Orlan **pass**; ECLSS rates **pass** (metabolic SoT unified below).
+
+---
+
+## Metabolic SoT (single source)
+
+Use **mass rates** for cabin/ECLSS ticks. Derived L/min must not fight kg/day.
+
+| State | O2 consumption | CO2 production | Notes |
+|-------|----------------|----------------|-------|
+| Awake (default) | **0.84 kg/day/person** | **1.0 kg/day/person** | ISS planning / HEU |
+| Sleep | **~0.59 kg/day** (~0.7× awake) | scale ~0.7× | Was 0.35 L/min mine-refuge figure — superseded for station tick |
+
+Equivalent awake O2 volume at STP (~1.429 kg/m3): **~0.41 L/min** (not 0.5). Old bunker **0.5 L/min** ≈ 1.0 kg/day is retired for ECLSS consistency.
+
+Demo cell make-up / scrub targets match 1× awake row.
 
 ---
 
@@ -22,139 +37,59 @@ SI-audit (Data Scientist): EMU / Orlan table **pass**.
 
 ## EVA suit / helmet (IRL defaults)
 
-Default play profile: **ISS EMU-class**. Orlan-class is an alternate profile. Helmet locked + suit sealed required before storm-side airlock exit. While sealed outdoors, breathe from **suit loop**, not tile air.
+Default: **ISS EMU-class**. Orlan alternate. Helmet+suit sealed before storm exit; outdoors breathe suit loop.
 
-### ISS EMU-class (default)
+| Quantity | EMU (ISS) | Orlan |
+|----------|-----------|-------|
+| Total mass | **~145 kg** (PLSS+SAFER) | **~110 kg** |
+| Suit-only | **~55 kg** | — |
+| Operating P | **29.6 kPa** 100% O2 | **40 kPa** |
+| Primary / reserve | **~8 h** / **~30 min** | **~7 h** |
 
-| Quantity | Value | Source notes |
-|----------|-------|--------------|
-| Suit assembly mass (no PLSS) | **~55 kg** (122 lb) | NASA EMU fact sheet |
-| Total mass PLSS + SAFER (ISS) | **~145 kg** (319 lb) | NASA EMU fact sheet |
-| Total mass PLSS + SAFER (Shuttle ref.) | **~125 kg** (275 lb) | NASA EMU fact sheet |
-| Operating pressure | **29.6 kPa** (4.3 psi) | **100% O2** |
-| Primary life support | **~8 h** nominal | PLSS |
-| Emergency O2 reserve | **~30 min** | Secondary Oxygen Pack |
-| Prebreathe / cabin step-down | Required bunker air → 29.6 kPa O2 | DCS risk; demo may shorten with Spec flag |
+Worn mass = `Mass_Kilograms` + AP/mobility penalty — **never** Strength 5 kg carry. Sealed 29.6 kPa pure O2 healthy as-is (no ×21%).
 
-### Orlan-class (alternate)
-
-| Quantity | Value | Source notes |
-|----------|-------|--------------|
-| Suit mass | **~110 kg** | Orlan-MKS published specs |
-| Operating pressure | **40 kPa** (0.04 MPa) | Absolute in-suit |
-| Autonomous EVA | **~7 h** | |
-
-### Game rules (SI-locked)
-
-1. Don suit + lock helmet before opening outer airlock to storm.
-2. **Worn suit mass is `Mass_Kilograms` with mobility/AP penalty — never human Strength carry.**
-3. Sealed EMU loop: **29.6 kPa at 100% O2** healthy as-is — **do not** multiply by 21%.
-4. Tile air only when helmet unlocked indoors.
-5. Life-support timer: primary → emergency reserve → hypoxia.
-
-### Wrist / cuff terminal (display layer)
-
-Thin UI over typed state: suit P, O2 time left, CO2/caution, thermal, power, seals, tissue O2. No ECG for v0.
+Wrist terminal: display over typed state (P, O2 time, CO2 flags, thermal, power, seals, tissue O2).
 
 ---
 
-## Tiangong-like cabin (Earth-analogue station module)
-
-Play profile for station-like rooms (not a full CSS twin). DS-proposed bands locked for Ada cabin defaults:
+## Tiangong-like cabin
 
 | Quantity | Locked |
 |----------|--------|
-| Total pressure | **~101 kPa** |
+| Total P | **~101 kPa** |
 | O2 partial | **~19–30 kPa** |
-| CO2 long-term | **≤ 0.4 kPa** |
-| CO2 emergency | **≤ 3 kPa** |
+| CO2 long-term / emergency | **≤0.4 kPa** / **≤3 kPa** |
 | Temperature | **~20–25 C** |
-| Relative humidity | **~50–65%** |
-| Gas mix | O2/N2 near sea-level |
+| RH | **~50–65%** |
 
-Volumes (public CSS): station ~340 / ~122 m3 pressurised/habitable; Tianhe ~113 / ~50–51 m3. Demo ops room (~44 m3) = work cell.
-
-Alternate CMSE Shenzhou published cabin band (reference only): total **91 ± 10 kPa**, O2 partial **20–26 kPa**.
+Volumes: station ~340/122 m3; Tianhe ~113/50–51 m3; demo ops room ~44 m3 work cell.
 
 ---
 
-## ECLSS scrubber / O2 make-up rates (locked for cabin tick)
+## ECLSS rates
 
-Per-person metabolic baselines (literature / ISS planning):
+| System | Capacity |
+|--------|----------|
+| CO2 removal (CDRA-class) | **~6 kg CO2/day** |
+| O2 generation (OGA range) | **~2.3–9.3 kg O2/day** |
+| Demo 1× cell | scrub **1.0 kg CO2/day**; make-up **0.84 kg O2/day** |
 
-| Quantity | Rate |
-|----------|------|
-| CO2 production | **~1.0 kg/day/person** (~1 HEU) |
-| O2 consumption | **~0.84 kg/day/person** |
-
-Station-class hardware capacity (ISS public; CSS regen meets ~100% O2 / purify demand for crew — use ISS rates until finer CSS kg/day publish):
-
-| System | Capacity | Notes |
-|--------|----------|-------|
-| CO2 removal (1 CDRA dual-bed class) | **~6 kg CO2/day** (~6 HEU) | ISS CDRA; ~1 kg/day per person-eq |
-| O2 generation (OGA selectable) | **~2.3–9.3 kg O2/day** | ISS OGA 5.1–20.4 lb/day; nominal ~3 crew |
-| Demo single-crew work cell | Scrub **~1.0 kg CO2/day**; make-up **~0.84 kg O2/day** | Match 1 occupant; scale ×N crew |
-
-### Ada cabin tick intent
-
-Each sim tick while ECLSS online:
-1. Add crew CO2 mass from metabolic rate × dt.
-2. Remove CO2 up to scrubber capacity × dt (cap at cabin CO2 inventory).
-3. Remove O2 from crew draw; inject O2 make-up up to generator capacity × dt.
-4. Hold total P near target by N2/O2 policy (simple: restore O2 first, then pad N2 if Spec says).
-5. If scrubber offline, CO2 climbs toward emergency 3 kPa; wrist flags caution above 0.4 kPa.
-
-Offline / failed ECLSS: sealed room drifts like mine refuge — CO2 fails before O2 in many cases.
+Cabin tick: add metabolic CO2/O2 draw × dt; scrub/make-up up to caps; flag wrist above 0.4 kPa CO2; emergency at 3 kPa.
 
 ---
 
-## Strider scale (vehicle)
+## Strider
 
-| Quantity | Full class | Demo stand-in |
-|----------|------------|---------------|
-| Empty mass | **1,680,000 kg** | **50,000 kg** |
-| Payload | **100,000 kg** (trivial / ~6%) | **500 kg** |
-| Step | ~12 m | 1 m tile |
-| Power | 14 MW / 19 MW overload | kW budget |
-
-`Payload_Is_Trivial` must accept 100,000 kg on full class. Use `Mass_Kilograms`.
+Full class: empty **1,680,000 kg**, payload **100,000 kg** (trivial). Demo: **50,000 kg** / **500 kg**. `Mass_Kilograms`. Strider-link in scope this Ada phase.
 
 ---
 
-## Bunker air (human)
+## Airlock / storm / Titan
 
-| Quantity | Baseline |
-|----------|----------|
-| O2 safe band (air-mix) | 18.5–23% vol |
-| Resting O2 draw | **0.5 L/min/person** |
-| Sleep O2 draw | **~0.35 L/min/person** |
-| Default ops room | 20 m2 × 2.2 m ≈ **44 m3** |
-| Bunker depth | 4 floors |
-
-Unsuited breathe: effective O2 = P × O2 fraction; healthy ~16–24 kPa.
-
----
-
-## Airlock
-
-Both-open forbidden. Outer storm exit requires sealed suit+helmet when exterior unsurvivable.
-
----
-
-## Outdoor storm
-
-Prefer cabin vs exterior split. Name Mars-thin if using ~20 kPa exterior.
-
----
-
-## Titan-style scenario
-
-~1.47–1.50 bar; ~94 K; not breathable.
+Both-open forbidden. Storm: cabin vs exterior; name Mars-thin if ~20 kPa. Titan: ~1.47–1.50 bar, ~94 K.
 
 ---
 
 ## Update rule
 
-1. Ops revises numbers from research/playtests.
-2. ADA implements from Spec + this page.
-3. Fix code/wiki drift in the same PR.
+1. Ops revises numbers. 2. ADA implements. 3. Same-PR fix for drift.

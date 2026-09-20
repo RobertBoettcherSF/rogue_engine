@@ -1,31 +1,17 @@
 # Proof & SPARK policy
 
-Today: strong Ada types, contracts, `-gnatwa`, and tests. Solid sim hygiene — **not** a proved flight computer yet.
+**This Ada phase:** implement everything in **plain Ada** first (types, contracts, `-gnatwa`, tests). **Label** packages as **SPARK Level 2–4 candidates** now so future proof work has a map — do not block features on prove.
 
-## Floor (where IRL would want assurance)
+## Labels (current phase)
 
-Target **SPARK Level 2** on:
+| Band | Meaning |
+|------|--------|
+| **L2–L4 candidate** | Default label for sim packages this phase |
+| Priority climb later | breathe, suit/helmet, airlock, ECLSS, **strider-link** |
+| Plain Ada forever OK | UI, content loaders, wiki text, art pipeline |
 
-| Area | Packages / concerns |
-|------|---------------------|
-| Breathe / tissue O2 | `Game_Actors` human path, cabin/suit air |
-| Suit / helmet | EVA worn mass, seal, suit-loop P/O2 timers |
-| Airlock | Both-open invariant, cycle |
-| ECLSS cabin tick | CO2 scrub / O2 make-up rates from Physical_Data |
-| Strider remote-link | Console link safety (drop on power/range loss) |
+## Future (when Robert asks to climb)
 
-UI, content loaders, wiki, and art stay **plain Ada**.
+Wherever IRL would want assurance: close at least **Level 2**, then optionally **L3 / L4** on the priority set. Not a proved flight computer today.
 
-## Climb candidates (mark now, prove later)
-
-The same IRL-critical set is marked **Level 3–4 candidates** so we can raise the bar without guessing:
-
-breathe · suit/helmet · airlock · ECLSS · strider-link
-
-ADA marks these in package headers; Ops keeps this page + the board POLICY card in sync.
-
-## Rule
-
-1. Ship features in Ada first if L2 would block play.
-2. Before claiming IRL-grade assurance on a package, close at least **L2**.
-3. L3/L4 only when Robert asks to climb that package.
+ADA marks headers; Ops keeps this page + board POLICY card in sync.
