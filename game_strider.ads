@@ -1,23 +1,5 @@
 --  SPDX-License-Identifier: MIT
 --  Copyright (c) 2026 Robert Boettcher
---
---  Permission is hereby granted, free of charge, to any person obtaining a copy
---  of this software and associated documentation files (the "Software"), to deal
---  in the Software without restriction, including without limitation the rights
---  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
---  copies of the Software, and to permit persons to whom the Software is
---  furnished to do so, subject to the following conditions:
---
---  The above copyright notice and this permission notice shall be included in
---  all copies or substantial portions of the Software.
---
---  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
---  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
---  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
---  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
---  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
---  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
---  SOFTWARE.
 
 pragma Ada_2022;
 
@@ -71,6 +53,30 @@ package Game_Strider is
      Global => null,
      Pre    => C.Empty_Mass_kg <= Mass_Kilograms'Last - C.Payload_kg,
      Post   => Total_Mass_kg'Result = C.Empty_Mass_kg + C.Payload_kg;
+
+
+   --  "Even 100 t is nothing" on a full-class walker: payload ≤ 10% of empty.
+   function Payload_Is_Trivial
+     (Empty, Payload : Mass_Kilograms) return Boolean
+   with
+     Global => null,
+     Post   =>
+       Payload_Is_Trivial'Result = (Payload * 10 <= Empty);
+
+   function Can_Load
+     (C       : Chassis;
+      Payload : Mass_Kilograms) return Boolean
+   with
+     Global => null,
+     Post   => Can_Load'Result = (Payload <= C.Payload_Cap_kg);
+
+   procedure Set_Payload
+     (C       : in out Chassis;
+      Payload : Mass_Kilograms)
+   with
+     Global => null,
+     Pre    => Can_Load (C, Payload),
+     Post   => C.Payload_kg = Payload;
 
    function Demo_To_Full_Mass_Ratio return Natural
    with
