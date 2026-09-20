@@ -3,3 +3,6 @@ tests
 *.ali
 *.o
 *.bexch
+play
+tests_demo
+tests_ops_scenario
