@@ -65,7 +65,7 @@ package Game_Atmosphere is
        and then Cabin_Earth_Air'Result.O2_Percent = 21
        and then O2_Partial_kPa (Cabin_Earth_Air'Result) = 21;
 
-   --  Storm exterior at 20 kPa with Earth air fraction ≈ 4 kPa O2-partial.
+   --  Mars-thin storm exterior (20 kPa) with Earth air fraction ≈ 4 kPa O2-partial.
    --  Unsurvivable without sealed cabin/suit (Demo Spec; storm P locked for now).
    function Storm_Exterior_Air return Tile_Atmosphere
    with

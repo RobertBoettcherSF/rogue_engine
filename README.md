@@ -17,7 +17,7 @@ Built as strongly typed modules with contracts and embedded suites (`tests.adb`,
 
 Strider demo stand-in: **5×10⁴ kg** empty, **1 m** step, **5×10² kg** payload, power in **kW** (full-class wiki mass ~1680 t → scale **≈ 1/34**). Vehicle mass is `Mass_Kilograms`; eat/drink stay grams. `Payload_Is_Trivial`: payload×10 ≤ empty.
 
-Link: sealed double-door airlock + remote pilot (`Strider_Walk` / `Turn` / `Scan`). Human **never** steps onto storm tiles while piloting. Outside: **20 kPa** (demo), cold, visibility ~0, aurora. EVA: ISS EMU-class **145 kg** worn (`Mass_Kilograms`, AP penalty; never Strength carry); suit loop **29.6 kPa / 100% O₂** healthy. Cabin ~101 kPa × 21% ≈ **21 kPa** O₂-partial; unsuited storm ≈ **4 kPa** — hypoxia.
+Link: sealed double-door airlock + remote pilot (`Strider_Walk` / `Turn` / `Scan`). Human **never** steps onto storm tiles while piloting. Outside: **20 kPa Mars-thin** exterior (ADA lock; not Earth 70–85 kPa), cold, visibility ~0, aurora. EVA: ISS EMU-class **145 kg** worn (`Mass_Kilograms`, AP penalty; never Strength carry); suit loop **29.6 kPa / 100% O₂** healthy. Cabin ~101 kPa × 21% ≈ **21 kPa** O₂-partial; unsuited storm ≈ **4 kPa** — hypoxia.
 
 ## Goals
 
@@ -75,6 +75,14 @@ make play    # ops-room + Strider demo sequence
 ```
 
 Clean with `make clean`. Flags: `-gnatwa -gnat2022`.
+
+**Get current main** (do not use an old Downloads zip — those lag `make play` and suites):
+
+```bash
+git clone https://github.com/RobertBoettcherSF/rogue_engine.git
+# or: git pull origin main
+make test && make play
+```
 
 Wiki: [Packages](docs/wiki/Packages.md) · [Demo](docs/wiki/Demo.md) · [Passenger_Board](docs/wiki/Passenger_Board.md) · [Strider](docs/wiki/Strider.md) · [Physical_Data](docs/wiki/Physical_Data.md) · [SI_Units](docs/wiki/SI_Units.md) · [Proof](docs/wiki/Proof.md).
 
