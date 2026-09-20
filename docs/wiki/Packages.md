@@ -1,15 +1,14 @@
 # Packages (Ada 2022)
 
-| Package | Role |
-|---------|------|
-| `Game_Grid` | Points, terrain, 24×24 chunks, Chebyshev distance, LOS |
-| `Game_Actors` | `Human_Actor` (O₂ + bunker breathe) · `Robot_Actor` (power/hull/thermal) · AP · adjacent move |
-| `Game_Items` | Backpack load; container hull+content; °C; seal→access; can opener / drill / process; plasma breach |
-| `Game_Dream_RSI` | Discovery tree; replay sim; improve exploration policy; redeploy |
-| `Game_Environment` | Bunker depth, airlock, storm, satellite frame, aurora |
-| `Game_Ops_Room` | Typed mid-room layout; floor tiles; height; air volume |
-| `Game_Scenario` | Flexible starts (bunker+rover vs Titan-style) — **shipped** |
+| Package | Role | Proof note |
+|---------|------|------------|
+| `Game_Grid` | Points, terrain, chunks, LOS | Plain Ada OK |
+| `Game_Actors` | Human O2 / Robot power-hull-thermal; AP | **L2 floor** (breathe); **L3–L4 candidate** |
+| `Game_Items` | Mass, containers, tools | Plain Ada / L2 if mass contracts harden |
+| `Game_Dream_RSI` | Explore → Construct → Dream → Redeploy | Plain Ada OK |
+| `Game_Environment` | Airlock, storm, satellite, aurora | **L2 floor** (airlock); **L3–L4 candidate** |
+| `Game_Ops_Room` | Layout, height, air volume | Plain Ada OK |
+| `Game_Scenario` | Flexible starts — shipped | Plain Ada OK |
+| Suit / ECLSS / Strider (in progress) | EVA, cabin tick, remote link | **L2 floor**; **L3–L4 candidates** |
 
-Factual constants: [Physical Data](Physical_Data.md). Units: [SI Units](SI_Units.md). Playable demo Spec: [Demo](Demo.md).
-
-Next candidates: turn clock; siphon liquid / bleed gas; DEMO walk/eat/breathe/sleep-dream loop.
+Policy: [Proof](Proof.md). Facts: [Physical Data](Physical_Data.md). Units: [SI Units](SI_Units.md). Demo: [Demo](Demo.md).
