@@ -8,7 +8,9 @@ with Game_Atmosphere;
 with Game_Turn;
 
 --  Passenger board computer (Passenger_Board.md Ops+DS). Calm meta panel —
---  not pilot glass. Ada-only this phase; SPARK FUTURE climb.
+--  not pilot glass.
+--  SPARK: FUTURE climb — L2–L4 candidate (IRL: cabin status under g / dim vision).
+--  Ada-only this phase (incl. production screenshots later); formal prove later — no gnatprove required now.
 package Game_Passenger_Board is
    use type Game_Atmosphere.Air_Zone;
 
