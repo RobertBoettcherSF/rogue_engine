@@ -25,6 +25,7 @@ with Ada.Text_IO;
 with Game_Actors;
 with Game_Grid;
 with Game_Items;
+with Game_Environment;
 
 --  Growing standalone test suite and usage example for the rogue engine.
 procedure Tests is
@@ -32,10 +33,14 @@ procedure Tests is
    package G renames Game_Grid;
    package A renames Game_Actors;
    package I renames Game_Items;
+   package E renames Game_Environment;
    use type G.Coordinate;
    use type I.Matter_State;
    use type G.Terrain_Type;
-   use type A.Health_Status;
+   use type A.Human_Condition;
+   use type A.Robot_Condition;
+   use type E.Door_State;
+   use type E.Clock_Phase;
 
    Failed : Natural := 0;
    Passed : Natural := 0;
@@ -57,7 +62,7 @@ procedure Tests is
      [others => [others => G.Make_Tile (G.Dirt)]];
    T                : G.Tile;
 
-   Hero             : A.Actor;
+   Hero             : A.Human_Actor;
    Dest             : G.Point;
 begin
    TIO.Put_Line ("=== Game_Grid ===");
@@ -144,7 +149,8 @@ begin
           "Initialize sets position");
    Check (Hero.Speed = 10, "Initialize sets speed");
    Check (Hero.AP = 0, "Initialize zeros action points");
-   Check (Hero.Health = A.Healthy, "Initialize health is Healthy");
+   Check (Hero.Oxygenation = 100, "Initialize oxygenation is 100");
+   Check (A.Human_Status (Hero) = A.Healthy, "Initialize human status is Healthy");
 
    --  2. Action-point arithmetic (add / deduct)
    A.Adjust_Action_Points (Hero, 250);
@@ -188,8 +194,75 @@ begin
    end;
 
 
+
+
+
+   --  Human oxygenation + bunker room
+   declare
+      Room : A.Bunker_Room;
+   begin
+      Check (Hero.Oxygenation = 100, "Human starts at full oxygenation");
+      Check (A.Human_Status (Hero) = A.Healthy, "Human status Healthy at O2 100");
+      Room := (O2_Percent => 12, CO2_Percent => 5, Pressure_kPa => 101, Volume_Liters => 20_000);
+      A.Breathe_In_Bunker (Hero, Room);
+      Check (Hero.Oxygenation < 100, "Bad bunker air lowers oxygenation");
+   end;
+
+   declare
+      Bot : A.Robot_Actor;
+   begin
+      A.Initialize_Robot (Bot, Location => (X => 1, Y => 1), Speed => 3);
+      Check (Bot.Power = 100 and then Bot.Hull = 100, "Robot full power/hull");
+      Check (A.Robot_Status (Bot) = A.Nominal, "Robot Nominal at start");
+      A.Adjust_Power (Bot, -40);
+      Check (A.Robot_Status (Bot) = A.Degraded, "Robot Degraded at power 60");
+   end;
+
    TIO.New_Line;
-   TIO.Put_Line ("=== Game_Items (Weight / Containers) ===");
+   TIO.Put_Line ("=== Game_Environment ===");
+   declare
+      Storm : constant E.Outdoor_Storm := E.Default_Storm;
+      Lock  : E.Airlock;
+      Shot  : E.Satellite_Frame;
+      Raised : Boolean;
+   begin
+      Check (Storm.Visibility_M = 0, "Storm visibility is zero");
+      Check (Storm.Looks_Dark and then Storm.Radio_Says = E.Midday,
+             "Dark at midday per radio");
+      Check (Storm.Aurora_Visible, "Aurora over dust storm");
+      Check (Storm.Pressure_kPa = E.Storm_Outside_Pressure, "Outside pressure dropped");
+      Check (E.Bunker_Floor_Depth = 4, "Site bunker depth is 4");
+
+      Check (E.Both_Doors_Closed (Lock), "Airlock starts sealed");
+      E.Cycle_To_Bunker (Lock);
+      E.Open_Inner (Lock);
+      Check (Lock.Inner = E.Open and then Lock.Outer = E.Closed, "Inner open only");
+      Check
+        (not (Lock.Inner = E.Open and then Lock.Outer = E.Open),
+         "Airlock never has both doors open");
+      E.Close_Inner (Lock);
+      Check (E.Both_Doors_Closed (Lock), "Inner closed again");
+      --  Outer blocked until chamber matches storm pressure
+      Raised := False;
+      begin
+         E.Open_Outer (Lock);
+      exception
+         when E.Pressure_Unsafe_Error =>
+            Raised := True;
+      end;
+      Check (Raised, "Outer blocked until pressure cycled to storm");
+      E.Cycle_To_Storm (Lock);
+      E.Open_Outer (Lock);
+      Check (Lock.Outer = E.Open and then Lock.Inner = E.Closed, "Outer open only");
+
+      Shot := E.Capture_Satellite_Picture (Storm);
+      Check (Shot.Shows_Aurora, "Satellite picture shows aurora");
+      Check (not Shot.Ground_Visible, "Satellite cannot see ground through dust");
+   end;
+
+   TIO.New_Line;
+   TIO.Put_Line
+     ("=== Game_Items (Weight / Containers) ===");
 
    declare
       Pack     : I.Backpack;
