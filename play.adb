@@ -1,1 +1,1 @@
-PLACEHOLDER_LOAD_FROM_TMP
+@/tmp/play_final.adb
