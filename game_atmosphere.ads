@@ -13,6 +13,7 @@ with Game_Environment;
 --    Mars-thin storm demo 20 kPa (keep named; not true Mars)
 --    Mars exterior ~0.6 kPa CO2 -> 1 kPa SI integer, suit required, g0~0.38
 --    Titan exterior ~147 kPa N2+CH4, suit required, g0~0.14
+--    Dock vacuum ~0 kPa exterior (Story_Arc Dock; cabin stays station bands)
 package Game_Atmosphere is
 
    subtype Percent is Game_Actors.Percent;
@@ -118,5 +119,16 @@ package Game_Atmosphere is
                   Titan_Exterior_Pressure_kPa
        and then Titan_Exterior_Air'Result.O2_Percent = 0
        and then O2_Partial_kPa (Titan_Exterior_Air'Result) = 0;
+
+   --  Dock / station exterior: hard vacuum ~0 kPa (Story_Arc Dock).
+   --  Cabin stays station bands — NOT Mars/Titan surface until later EVA.
+   function Vacuum_Exterior_Air return Tile_Atmosphere
+   with
+     Global => null,
+     Post   =>
+       Vacuum_Exterior_Air'Result.Zone = Exterior
+       and then Vacuum_Exterior_Air'Result.Pressure_kPa = 0
+       and then Vacuum_Exterior_Air'Result.O2_Percent = 0
+       and then O2_Partial_kPa (Vacuum_Exterior_Air'Result) = 0;
 
 end Game_Atmosphere;

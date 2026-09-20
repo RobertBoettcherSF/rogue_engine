@@ -69,7 +69,7 @@ package body Game_Atmosphere is
 
    function Titan_Exterior_Air return Tile_Atmosphere is
    begin
-      --  ~147 kPa N2+CH4; no O2 field for CH4 -- O2%=0 means unbreathable.
+      --  ~147 kPa N2+CH4; no O2 field for CH4 — O2%=0 means unbreathable.
       return
         (Zone          => Exterior,
          O2_Percent    => 0,
@@ -77,5 +77,15 @@ package body Game_Atmosphere is
          Pressure_kPa  => Titan_Exterior_Pressure_kPa,
          Volume_Liters => 1_000_000);
    end Titan_Exterior_Air;
+
+   function Vacuum_Exterior_Air return Tile_Atmosphere is
+   begin
+      return
+        (Zone          => Exterior,
+         O2_Percent    => 0,
+         CO2_Percent   => 0,
+         Pressure_kPa  => 0,
+         Volume_Liters => 1_000_000);
+   end Vacuum_Exterior_Air;
 
 end Game_Atmosphere;
