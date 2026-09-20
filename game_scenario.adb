@@ -20,7 +20,7 @@ package body Game_Scenario is
       case Id is
          when Bunker_Rover_Storm =>
             C.Human_Floor := Positive (Game_Environment.Bunker_Floor_Depth);
-            C.Outdoor_Role := Rover;
+            C.Outdoor_Role := Strider;
             C.Atmosphere := Bunker_Earth_Storm;
             C.Dream_RSI_On_Outdoor := True;
             C.Storm := Game_Environment.Default_Storm;
@@ -49,9 +49,11 @@ package body Game_Scenario is
         (X => Game_Grid.Coordinate (Config.Ops.Seat_X),
          Y => Game_Grid.Coordinate (Config.Ops.Seat_Y));
    begin
+      --  Human remains at ops-room operator seat (remote pilot).
       Game_Actors.Initialize_Human (Human, Seat, Speed => 1);
+      --  Outdoor linked machine (Strider / rover / lander) starts on storm pad.
       Game_Actors.Initialize_Robot
-        (Robot, Location => (X => 0, Y => 0), Speed => 2);
+        (Robot, Location => (X => 10, Y => 10), Speed => 2);
    end Apply_Start;
 
 end Game_Scenario;
