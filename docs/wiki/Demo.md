@@ -9,15 +9,17 @@ Player ask (Robert): walk around; eat or drink; breathing on **autopilot** with 
 ## Success criteria (try-local)
 
 1. **Walk** — move human (or linked avatar) on ops-room / bunker tiles with AP / turn clock.
-2. **Eat / drink** — consumable items restore hunger/thirst (or equivalent vitals); mass decreases.
-3. **Autopilot breathe** — each tick, inhale from **current tile / room cell** atmosphere:
-   - pressure (kPa), O₂%, CO₂%, volume mixing per [Physical_Data](Physical_Data.md) + [SI_Units](SI_Units.md)
-   - tissue oxygenation updates; hypoxia if tile air bad or pressure too low
+2. **Eat / drink** — consumable items restore hunger/thirst (or equivalent vitals); liquid/solid `Content_Mass` in **grams**; sip/bite subtracts mass.
+3. **Autopilot breathe** — each tick, inhale from **current tile / room cell** atmosphere (cabin vs exterior split outdoors):
+   - Effective O₂ = **tile P (kPa) × O₂%** (partial pressure), not O₂% alone
+   - Bunker cell example: ~101 kPa × 21% ≈ **21 kPa** O₂-partial
+   - Drop tissue O₂ when that product leaves ~**16–24 kPa**, or when **CO₂% climbs first** (Physical_Data)
+   - Storm exterior at **20 kPa** with Earth air ≈ **4 kPa** O₂-partial — unsurvivable without sealed cabin/suit; never silently use bunker air outdoors
    - no manual “breathe” command required
-4. **Sleep** — action that advances time, recovers fatigue, blocks walk until wake.
+4. **Sleep** — advances time, recovers fatigue, blocks walk until wake; O₂ draw may fall toward ~**0.35 L/min** (resting demo default **0.5 L/min**).
 5. **Dream** — while asleep (or via explicit dream), run Dream-RSI **Dream** phase on logged Explore tree (cheap replay); wake can **Redeploy** improved weights (optional for demo v0).
 
-Document `make play` (or equivalent) in README when green.
+Document `make play` (or equivalent) in README when green. Data Scientist SI-audits the demo PR.
 
 ---
 
