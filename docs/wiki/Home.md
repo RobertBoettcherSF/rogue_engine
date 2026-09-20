@@ -13,4 +13,4 @@ In-repo wiki mirrors **typed Ada packages** on `main`. If prose and code disagre
 | [Scenario](Scenario.md) | Flexible starts (`Game_Scenario` Spec) |
 
 **Repo:** https://github.com/RobertBoettcherSF/rogue_engine  
-**Tests:** `make test` (108 assertions on current main)
+**Tests:** `make test` (121 assertions on current main)
