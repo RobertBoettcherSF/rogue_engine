@@ -24,15 +24,14 @@ pragma Ada_2022;
 with Game_Actors;
 
 --  Small sealed bunker ops room (player habitat). Not a world chunk:
---  3x3 tiles at 1 m -> 9 m2. Every tile carries clear height (cm).
---  Suit hook hang height = 2000 mm (200 cm). Dual airlock doors on map.
+--  default 3×3 tiles at 1 m → 9 m². Every tile carries clear height (cm).
 package Game_Ops_Room is
 
    Tile_Edge_Cm : constant := 100;  -- 1 m tiles (Physical Data / playable scale)
 
    Room_Width  : constant := 3;   -- X
    Room_Depth  : constant := 3;   -- Y
-   --  Floor area = 3 x 3 x 1 m2 = 9 m2
+   --  Floor area = 3 × 3 × 1 m² = 9 m²
 
    subtype Width_Index is Positive range 1 .. Room_Width;
    subtype Depth_Index is Positive range 1 .. Room_Depth;
@@ -40,17 +39,13 @@ package Game_Ops_Room is
    --  Clear height from floor to ceiling obstruction on that cell (cm).
    subtype Height_Cm is Natural range 0 .. 1_000;
    Default_Clear_Height_Cm : constant Height_Cm := 220;
-   --  DS SI: spacesuit hang height 2000 mm = 200 cm.
-   Suit_Hook_Hang_Height_Cm : constant Height_Cm := 200;
 
    type Cell_Kind is
      (Wall,
       Floor,
       Console_Island,
       Operator_Seat,
-      Airlock_Door,   -- inner (cabin-side)
-      Outer_Door,     -- storm / surface side
-      Suit_Hook);
+      Airlock_Door);
 
    type Room_Cell is record
       Kind     : Cell_Kind := Floor;
@@ -61,20 +56,15 @@ package Game_Ops_Room is
    type Room_Map is array (Width_Index, Depth_Index) of Room_Cell;
 
    type Ops_Room is record
-      Cells               : Room_Map;
+      Cells          : Room_Map;
       Floor_Below_Surface : Positive := 4;
-      Air                 : Game_Actors.Bunker_Room;
-      Console_X           : Width_Index := 2;
-      Console_Y           : Depth_Index := 2;
-      Seat_X              : Width_Index := 2;
-      Seat_Y              : Depth_Index := 3;
-      Door_X              : Width_Index := 1;  -- inner
-      Door_Y              : Depth_Index := 1;
-      Outer_Door_X        : Width_Index := 3;
-      Outer_Door_Y        : Depth_Index := 1;
-      Suit_Hook_X         : Width_Index := 3;
-      Suit_Hook_Y         : Depth_Index := 3;
-      Suit_On_Hook        : Boolean := True;
+      Air            : Game_Actors.Bunker_Room;
+      Console_X      : Width_Index := 2;
+      Console_Y      : Depth_Index := 2;
+      Seat_X         : Width_Index := 2;
+      Seat_Y         : Depth_Index := 3;
+      Door_X         : Width_Index := 2;
+      Door_Y         : Depth_Index := 1;
    end record;
 
    function Floor_Area_M2 return Natural
