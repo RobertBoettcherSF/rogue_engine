@@ -1,35 +1,25 @@
-# Messages (passenger inbox)
+# Messages (communicator inbox)
 
-Lean Ada — **incoming only** this phase (no compose). Package: `Game_Messages`.
+Incoming only for now (list / read / archive / delete). No compose.
 
-## Features
+## Kinds
 
-| Action | v0 |
-|--------|----|
-| List | Show inbox |
-| Open / read | View body |
-| Archive | Move out of active list |
-| Delete | Remove |
-| Compose | **Not yet** |
+| Kind | Role | Examples |
+|------|------|----------|
+| **STORY** | narrative | welcome / flight to &lt;Planetname&gt; |
+| **ANNOUNCEMENT** | general PA | technical difficulties |
+| **CAUTION** | soft systems | O2 drifting, CO2 up, greyout |
+| **ALERT** | hard FAIL | hypoxia, pierce, Armstrong, blackout |
+| **GUIDANCE** | nav | course set / distance m |
 
-Sources: **INFO** / **ANNOUNCEMENT** / **CAUTION** / **FAIL** — scripted seed + watchdog pushes.
+Watchdog pushes CAUTION/ALERT from SI. STORY/ANNOUNCEMENT are scripted. GUIDANCE from wrist-map.
 
-FUTURE color (plain text now): ANNOUNCEMENT → yellow; CAUTION → orange; FAIL → red.
+## Seeds
 
-## Seed messages
+**STORY:** Dear Passenger… pleasant flight to and stay at **&lt;Planetname&gt;**.
 
-1. **INFO** welcome (`Planetname` from scenario / profile — Earth / Mars / Titan):
+**ANNOUNCEMENT:** We are experiencing technical difficulties. Please observe and follow instructions from flight personnel.
 
-> Dear Passenger. Thank you for flying with Rogue Engine. We hope you have a pleasant flight to and stay at **&lt;Planetname&gt;**.
+## Game vs IRL suit cuff
 
-2. **ANNOUNCEMENT** (technical difficulties):
-
-> We are experiencing technical difficulties. Please observe and follow instructions from flight personnel
-
-CAUTION / FAIL still push from the passenger-board watchdog when cabin status changes.
-
-## Play
-
-`make play` → wrist map → **`M`** opens inbox (separate UI surface). `1`–`9` open, `a` archive, `d` delete, `b` back. Profiles `1`–`4` reseed welcome with the active planet.
-
-Map and inbox are separate UI surfaces.
+Same Ada core (P, O2-partial, seal, timer, CAUTION/ALERT). STORY optional for fiction; life-critical path always on. L2–L4 labeled for later prove.
