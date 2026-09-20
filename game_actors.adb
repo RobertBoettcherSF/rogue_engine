@@ -1,23 +1,5 @@
 --  SPDX-License-Identifier: MIT
 --  Copyright (c) 2026 Robert Boettcher
---
---  Permission is hereby granted, free of charge, to any person obtaining a copy
---  of this software and associated documentation files (the "Software"), to deal
---  in the Software without restriction, including without limitation the rights
---  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
---  copies of the Software, and to permit persons to whom the Software is
---  furnished to do so, subject to the following conditions:
---
---  The above copyright notice and this permission notice shall be included in
---  all copies or substantial portions of the Software.
---
---  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
---  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
---  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
---  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
---  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
---  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
---  SOFTWARE.
 
 pragma Ada_2022;
 
@@ -93,7 +75,11 @@ package body Game_Actors is
         (Position    => Location,
          Speed       => Speed,
          AP          => 0,
-         Oxygenation => 100);
+         Oxygenation => 100,
+         Hunger      => 40,
+         Thirst      => 40,
+         Fatigue     => 60,
+         Sleeping    => False);
    end Initialize_Human;
 
    procedure Initialize_Robot
@@ -137,6 +123,33 @@ package body Game_Actors is
           (Clamp_0_100 (Integer (Self.Oxygenation) + Amount));
    end Adjust_Oxygenation;
 
+   procedure Adjust_Hunger
+     (Self   : in out Human_Actor;
+      Amount : Integer)
+   is
+   begin
+      Self.Hunger :=
+        Vital_Percent (Clamp_0_100 (Integer (Self.Hunger) + Amount));
+   end Adjust_Hunger;
+
+   procedure Adjust_Thirst
+     (Self   : in out Human_Actor;
+      Amount : Integer)
+   is
+   begin
+      Self.Thirst :=
+        Vital_Percent (Clamp_0_100 (Integer (Self.Thirst) + Amount));
+   end Adjust_Thirst;
+
+   procedure Adjust_Fatigue
+     (Self   : in out Human_Actor;
+      Amount : Integer)
+   is
+   begin
+      Self.Fatigue :=
+        Vital_Percent (Clamp_0_100 (Integer (Self.Fatigue) + Amount));
+   end Adjust_Fatigue;
+
    procedure Breathe_In_Bunker
      (Self : in out Human_Actor;
       Room : Bunker_Room)
@@ -157,6 +170,54 @@ package body Game_Actors is
       end if;
       Adjust_Oxygenation (Self, Shift);
    end Breathe_In_Bunker;
+
+   procedure Autopilot_Breathe
+     (Self         : in out Human_Actor;
+      O2_Percent   : Percent;
+      CO2_Percent  : Percent;
+      Pressure_kPa : Room_Pressure_kPa)
+   is
+      --  Effective O2 partial pressure (kPa) = P * O2% / 100.
+      Partial : constant Natural :=
+        (Natural (Pressure_kPa) * Natural (O2_Percent)) / 100;
+      Shift   : Integer := 0;
+   begin
+      --  CO2 danger rises before O2 runs out (Physical_Data).
+      if CO2_Percent > 2 then
+         Shift := Shift - Integer (CO2_Percent);
+      end if;
+
+      if Partial < 16 then
+         --  Hypoxia scales with how far below the safe band.
+         Shift := Shift - (16 - Integer (Partial));
+         if Partial <= 4 then
+            --  Storm exterior ~4 kPa: severe, unsurvivable without cabin/suit.
+            Shift := Shift - 10;
+         end if;
+      elsif O2_Percent >= 95 and then Pressure_kPa >= 25 then
+         --  Sealed EVA pure-O2 loop (~29.6 kPa EMU): treat as safe supply.
+         if CO2_Percent <= 2 then
+            Shift := Shift + 1;
+         end if;
+      elsif Partial > 24 then
+         Shift := Shift - (Integer (Partial) - 24);
+      elsif CO2_Percent <= 2 then
+         --  In 16..24 kPa Earth-air band with low CO2: slow recovery.
+         Shift := Shift + 1;
+      end if;
+
+      Adjust_Oxygenation (Self, Shift);
+   end Autopilot_Breathe;
+
+   procedure Begin_Sleep (Self : in out Human_Actor) is
+   begin
+      Self.Sleeping := True;
+   end Begin_Sleep;
+
+   procedure Wake (Self : in out Human_Actor) is
+   begin
+      Self.Sleeping := False;
+   end Wake;
 
    procedure Adjust_Power
      (Self   : in out Robot_Actor;
@@ -189,6 +250,9 @@ package body Game_Actors is
       Destination : Game_Grid.Point)
    is
    begin
+      if Self.Sleeping then
+         raise Asleep_Error;
+      end if;
       if not Game_Grid.Are_Adjacent (Self.Position, Destination) then
          raise Invalid_Move;
       end if;
