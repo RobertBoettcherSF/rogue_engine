@@ -17,11 +17,9 @@ Use **mass rates** for cabin/ECLSS ticks. Derived L/min must not fight kg/day.
 | State | O2 consumption | CO2 production | Notes |
 |-------|----------------|----------------|-------|
 | Awake (default) | **0.84 kg/day/person** | **1.0 kg/day/person** | ISS planning / HEU |
-| Sleep | **~0.59 kg/day** (~0.7× awake) | scale ~0.7× | Was 0.35 L/min mine-refuge figure — superseded for station tick |
+| Sleep | **~0.59 kg/day** (~0.7× awake) | scale ~0.7× | |
 
-Equivalent awake O2 volume at STP (~1.429 kg/m3): **~0.41 L/min** (not 0.5). Old bunker **0.5 L/min** ≈ 1.0 kg/day is retired for ECLSS consistency.
-
-Demo cell make-up / scrub targets match 1× awake row.
+Equivalent awake O2 volume at STP (~1.429 kg/m3): **~0.41 L/min**. Old bunker 0.5 L/min retired for ECLSS consistency.
 
 ---
 
@@ -48,7 +46,17 @@ Default: **ISS EMU-class**. Orlan alternate. Helmet+suit sealed before storm exi
 
 Worn mass = `Mass_Kilograms` + AP/mobility penalty — **never** Strength 5 kg carry. Sealed 29.6 kPa pure O2 healthy as-is (no ×21%).
 
-Wrist terminal: display over typed state (P, O2 time, CO2 flags, thermal, power, seals, tissue O2).
+### Wrist / cuff terminal
+
+Thin display over typed state. Mode-switched:
+
+| Mode | Readouts |
+|------|----------|
+| Unsuited (cabin / rocket cabin air) | cabin P (kPa), O2%/CO2%, effective O2-partial, temp, scrubber/O2 status, warnings |
+| Suited (sealed) | suit P, O2 time left (+ reserve), thermal, seal OK, battery — **not** exterior tile air |
+| Optional rocket lines | cabin ΔP to outside, MET/clock |
+
+**High thrust / high-g:** voluntary wrist glance is not free. Raise `Thrust_g` → higher AP cost and/or fail chance on `Can_Raise_Arm`. Critical alarms still **push** (tone + auto cuff line) without a full look. Soft coast = normal glance.
 
 ---
 
@@ -62,8 +70,6 @@ Wrist terminal: display over typed state (P, O2 time, CO2 flags, thermal, power,
 | Temperature | **~20–25 C** |
 | RH | **~50–65%** |
 
-Volumes: station ~340/122 m3; Tianhe ~113/50–51 m3; demo ops room ~44 m3 work cell.
-
 ---
 
 ## ECLSS rates
@@ -74,19 +80,17 @@ Volumes: station ~340/122 m3; Tianhe ~113/50–51 m3; demo ops room ~44 m3 work 
 | O2 generation (OGA range) | **~2.3–9.3 kg O2/day** |
 | Demo 1× cell | scrub **1.0 kg CO2/day**; make-up **0.84 kg O2/day** |
 
-Cabin tick: add metabolic CO2/O2 draw × dt; scrub/make-up up to caps; flag wrist above 0.4 kPa CO2; emergency at 3 kPa.
-
 ---
 
 ## Strider
 
-Full class: empty **1,680,000 kg**, payload **100,000 kg** (trivial). Demo: **50,000 kg** / **500 kg**. `Mass_Kilograms`. Strider-link in scope this Ada phase.
+Full: empty **1,680,000 kg**, payload **100,000 kg** (trivial). Demo: **50,000 / 500 kg**. `Mass_Kilograms`. Strider-link in this Ada phase.
 
 ---
 
 ## Airlock / storm / Titan
 
-Both-open forbidden. Storm: cabin vs exterior; name Mars-thin if ~20 kPa. Titan: ~1.47–1.50 bar, ~94 K.
+Both-open forbidden. Storm cabin vs exterior. Titan ~1.47–1.50 bar, ~94 K.
 
 ---
 
