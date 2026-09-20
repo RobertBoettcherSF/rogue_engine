@@ -20,6 +20,17 @@ Prefer few large lines; non-critical lines drop first when `Vision_Clarity` is l
 | 3 | **ΔP cabin→outside** (if known) | hull sensors |
 | drop first under dim | Detailed ECLSS rates, power bus, fuel %, attitude | pilot glass only |
 
+## Vision_Clarity from G_Load (Ops+DS lock)
+
+Units: g as ×g0 (`G_Load` tenths: 10 = 1.0 g); MET in seconds; P in kPa; O2/CO2 as partial kPa or %.
+
+| G_Load | Vision_Clarity | Notes |
+|--------|----------------|-------|
+| ≤ ~3 g (≤30 tenths) | **100** clear | Soft coast / mild |
+| ~3.5–4.5 g (35–45) | **~40** tunnel/grey | Peripheral loss |
+| ~5 g (~50) | **~20** readable | Heavy dim; dense lines drop |
+| > ~5 g (≥55) | **0** blackout | No voluntary glance |
+
 Suited passenger: cuff stays suit-loop; board computer still shows **cabin** meta (are we holding?) unless Spec says vehicle is unpressurized.
 
 Near-blackout: keep priority-1 lines; garble/omit 2–3; red warnings still push without a glance.
