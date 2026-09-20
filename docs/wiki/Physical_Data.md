@@ -1,43 +1,31 @@
 # Physical Data (Ops-owned)
 
-Factual baselines for typed Ada contracts. Unit convention: [SI_Units.md](SI_Units.md).
+Unit convention: [SI_Units.md](SI_Units.md).
 
 ---
 
-## Metabolic SoT
+## Lean world profiles (scenario data, one breathe law)
 
-Awake: **0.84 kg O2/day**, **1.0 kg CO2/day** per person. Sleep ~0.7×.
+Same engine: `O2_partial ≈ P × O2_fraction`. Suit/cabin when exterior is not breathable.
 
----
+| World | Ambient P | Mix / note | Breathable unsuited? | Surface g₀ |
+|-------|-----------|------------|----------------------|------------|
+| Earth cabin | **~101 kPa** | air | yes | **1.00** |
+| Earth-storm feel (legacy demo) | **20 kPa** Mars-thin named | air-like mix | **no** (~4 kPa O2-partial) | 1.00 |
+| Mars exterior | **~0.6 kPa** | mostly CO₂ | **no** (suit) | **~0.38** |
+| Titan exterior | **~147 kPa** | N₂+CH₄ | **no** (suit) | **~0.14** |
 
-## Ambient pressure
+Cabin green display: Atm_Fraction **0.90–1.10** (Earth=1.00). Passenger: NOMINAL/CAUTION/FAIL plain text; FUTURE colors.
 
-**Ada SoT: absolute kPa.** Atmosphere has weight → pressure (not g/cm).
-
-**Passenger display:** `Atm_Fraction` **0.00…1.00**, **1.00 = Earth ≈ 101 kPa**, **0.00 = vacuum** (no negatives).
-
-| Profile | kPa | Atm_Fraction |
-|---------|-----|--------------|
-| Earth sea level | ~101 | **1.00** |
-| Cabin green (total P) | ~91–111 | **0.90–1.10** |
-| Mars-thin storm | 20 | **~0.20** |
-| EMU suit | 29.6 pure O2 | **~0.29** (still OK) |
-
-Cabin also needs enough O2-partial (~19–30 kPa). Unsuited Mars-thin ≈ 4 kPa O2-partial — never green.
+**Note:** Demo “Mars-thin 20 kPa” is a hostile Earth-storm stand-in, not true Mars ~0.6 kPa. True Mars/Titan are scenario packs.
 
 ---
 
-## Passenger UX rule
+## Metabolic / ECLSS / suit / strider
 
-Internals stay full SI. Passenger sees **NOMINAL / CAUTION / FAIL** on the few that matter (cabin air, g, warnings). Optional numbers behind that; green = important values OK.
+Awake 0.84 kg O2 + 1.0 kg CO2 /day. ECLSS demo 1× scrub 1.0 / make-up 0.84. EMU ~145 kg, 29.6 kPa pure O2. Strider full 1.68e6 / 1e5 kg.
 
-See [Passenger_Board.md](Passenger_Board.md).
-
----
-
-## EVA / G / ECLSS / Strider / Storm
-
-EMU ~145 kg, 29.6 kPa, ~8 h + 30 min. G→vision: ≤3 clear, ~5 ≈20%, then blackout. ECLSS demo 1× scrub 1.0 / make-up 0.84 kg/day. Strider full 1.68e6 / 1e5 kg. Storm **Mars-thin 20 kPa** (named).
+G→vision: ≤3 clear → ~5 ≈20% → blackout.
 
 ---
 
