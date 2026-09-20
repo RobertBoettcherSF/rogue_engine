@@ -1,23 +1,5 @@
 --  SPDX-License-Identifier: MIT
 --  Copyright (c) 2026 Robert Boettcher
---
---  Permission is hereby granted, free of charge, to any person obtaining a copy
---  of this software and associated documentation files (the "Software"), to deal
---  in the Software without restriction, including without limitation the rights
---  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
---  copies of the Software, and to permit persons to whom the Software is
---  furnished to do so, subject to the following conditions:
---
---  The above copyright notice and this permission notice shall be included in
---  all copies or substantial portions of the Software.
---
---  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
---  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
---  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
---  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
---  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
---  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
---  SOFTWARE.
 
 pragma Ada_2022;
 
@@ -32,6 +14,7 @@ pragma Ada_2022;
 --
 --  Calibration: Comfortable_Capacity_G (S) = S * 1_000
 --  (Strength 5 => 5 kg). Hard_Capacity_G = 2x (Strength 5 => 10 kg).
+--  SPARK: FUTURE climb — L2–L4 candidate if containment/plasma life-critical. Ada-only this phase; no gnatprove required.
 package Game_Items is
 
    subtype Mass_Grams is Natural range 0 .. 1_000_000;
@@ -302,5 +285,26 @@ package Game_Items is
      Global => null,
      Pre    => S.Mass > 0,
      Post   => S.Refined;
+
+   Default_Bite_Grams : constant Mass_Grams := 50;
+   Default_Sip_Grams  : constant Mass_Grams := 100;
+
+   --  Bite solid content (food). Subtracts mass; raises if sealed/wrong state/empty.
+   procedure Bite
+     (C      : in out Container;
+      Grams  : Mass_Grams := Default_Bite_Grams;
+      Taken  : out Mass_Grams)
+   with
+     Global => null,
+     Pre    => Grams > 0;
+
+   --  Sip liquid content (drink). Subtracts mass; raises if sealed/wrong state/empty.
+   procedure Sip
+     (C      : in out Container;
+      Grams  : Mass_Grams := Default_Sip_Grams;
+      Taken  : out Mass_Grams)
+   with
+     Global => null,
+     Pre    => Grams > 0;
 
 end Game_Items;
