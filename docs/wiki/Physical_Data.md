@@ -6,6 +6,8 @@ Owner: Operations Manager. Consumers include `Game_Environment`, `Game_Actors`, 
 
 Unit convention: [SI_Units.md](SI_Units.md).
 
+SI-audit (Data Scientist): EMU / Orlan table **pass**.
+
 ---
 
 ## Mass / carry (human)
@@ -14,7 +16,7 @@ Unit convention: [SI_Units.md](SI_Units.md).
 |--------|-------|-------|
 | Comfortable carry @ Strength 4–6 | **5 kg** | Mid Strength baseline |
 | Example load that bites | **10 kg** potatoes | Over-encumbered |
-| Unit | grams / `Mass_Grams` | Food, drink, personal carry |
+| Unit | grams / `Mass_Grams` | Food, drink, backpack only |
 
 ---
 
@@ -29,10 +31,10 @@ Default play profile: **ISS EMU-class**. Orlan-class is an alternate profile. He
 | Suit assembly mass (no PLSS) | **~55 kg** (122 lb) | NASA EMU fact sheet |
 | Total mass PLSS + SAFER (ISS) | **~145 kg** (319 lb) | NASA EMU fact sheet |
 | Total mass PLSS + SAFER (Shuttle ref.) | **~125 kg** (275 lb) | NASA EMU fact sheet |
-| Operating pressure | **29.6 kPa** (4.3 psi) | 100% O2 |
-| Primary life support | **~8 h** nominal (mission planning often ~6.5–8 h useful) | PLSS |
+| Operating pressure | **29.6 kPa** (4.3 psi) | **100% O2** |
+| Primary life support | **~8 h** nominal | PLSS |
 | Emergency O2 reserve | **~30 min** | Secondary Oxygen Pack |
-| Prebreathe / cabin step-down | Required when going bunker ~101 kPa air to 29.6 kPa O2 | DCS risk; demo may shorten with explicit Spec flag |
+| Prebreathe / cabin step-down | Required bunker air → 29.6 kPa O2 | DCS risk; demo may shorten with Spec flag |
 
 ### Orlan-class (alternate)
 
@@ -40,14 +42,15 @@ Default play profile: **ISS EMU-class**. Orlan-class is an alternate profile. He
 |----------|-------|--------------|
 | Suit mass | **~110 kg** | Orlan-MKS published specs |
 | Operating pressure | **40 kPa** (0.04 MPa) | Absolute in-suit |
-| Autonomous EVA | **~7 h** (some docs up to ~9 h warranty class) | |
+| Autonomous EVA | **~7 h** | |
 
-### Game rules
+### Game rules (SI-locked)
 
 1. Don suit + lock helmet before opening outer airlock to storm.
-2. Suit mass counts toward carry / over-encumbrance (`Mass_Kilograms` for worn vehicle-scale load, or grams if you keep worn gear under human carry — prefer **kg** for full EMU ~145 kg).
-3. Autopilot breathe uses suit absolute pressure and O2 fraction while sealed; tile air only when helmet unlocked indoors.
-4. Life-support timer depletes; at 0 primary, only emergency reserve remains; at 0 reserve, hypoxia path.
+2. **Worn suit mass is `Mass_Kilograms` with mobility/AP penalty — never human Strength carry.** Comfortable carry stays **5 kg** for backpack `Mass_Grams` only. A **145 kg** EMU must not be checked against Strength capacity.
+3. Sealed EMU loop: treat **29.6 kPa at 100% O2** as healthy (inspired partial ≈ suit P). **Do not** multiply suit pressure by 21% air-mix. The unsuited air-mix band (~16–24 kPa) applies only to bunker/tile air.
+4. Tile air only when helmet unlocked indoors.
+5. Life-support timer: primary → emergency reserve → hypoxia.
 
 ---
 
