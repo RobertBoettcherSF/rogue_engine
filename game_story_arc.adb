@@ -82,8 +82,10 @@ package body Game_Story_Arc is
       end case;
    end Seed_Phase;
 
-   procedure Start_Arc (Arc : out Arc_State; Human : in out Game_Actors.Human_Actor;
-      Mail : in out Game_Messages.Inbox; Dest : String) is
+   procedure Start_Arc
+     (Arc : out Arc_State; Human : in out Game_Actors.Human_Actor;
+      Mail : in out Game_Messages.Inbox; Dest : String)
+   is
    begin
       Arc := Profile_For (Bunker);
       Apply_Human_Load (Arc, Human);
@@ -91,8 +93,10 @@ package body Game_Story_Arc is
       Seed_Phase (Bunker, Mail, Dest);
    end Start_Arc;
 
-   procedure Tick_Sensors (Arc : in out Arc_State; Human : in out Game_Actors.Human_Actor;
-      Steps : Positive := 1) is
+   procedure Tick_Sensors
+     (Arc : in out Arc_State; Human : in out Game_Actors.Human_Actor;
+      Steps : Positive := 1)
+   is
       Cur_G, Tgt_G, Dg, Cur_C, Tgt_C, Dc : Integer;
    begin
       for Unused in 1 .. Steps loop
@@ -101,13 +105,17 @@ package body Game_Story_Arc is
          Cur_G := Integer (Arc.G_Load_Tenths);
          Tgt_G := Integer (Arc.Target_G_Tenths);
          Dg := (Tgt_G - Cur_G) / Integer (Arc.Lerp_Ticks_Left);
-         if Dg = 0 and then Cur_G /= Tgt_G then Dg := (if Tgt_G > Cur_G then 1 else -1); end if;
+         if Dg = 0 and then Cur_G /= Tgt_G then
+            Dg := (if Tgt_G > Cur_G then 1 else -1);
+         end if;
          Cur_G := Integer'Max (0, Integer'Min (100, Cur_G + Dg));
          Arc.G_Load_Tenths := Game_Actors.G_Load_Tenths (Cur_G);
          Cur_C := Integer (Arc.Cabin.CO2_Percent);
          Tgt_C := Integer (Arc.Target_CO2_Percent);
          Dc := (Tgt_C - Cur_C) / Integer (Arc.Lerp_Ticks_Left);
-         if Dc = 0 and then Cur_C /= Tgt_C then Dc := (if Tgt_C > Cur_C then 1 else -1); end if;
+         if Dc = 0 and then Cur_C /= Tgt_C then
+            Dc := (if Tgt_C > Cur_C then 1 else -1);
+         end if;
          Cur_C := Integer'Max (0, Integer'Min (100, Cur_C + Dc));
          Arc.Cabin.CO2_Percent := Game_Atmosphere.Percent (Cur_C);
          Arc.Lerp_Ticks_Left := Arc.Lerp_Ticks_Left - 1;
@@ -119,14 +127,18 @@ package body Game_Story_Arc is
       Apply_Human_Load (Arc, Human);
    end Tick_Sensors;
 
-   procedure Advance_Phase (Arc : in out Arc_State; Human : in out Game_Actors.Human_Actor;
-      Mail : in out Game_Messages.Inbox; Dest : String) is
+   procedure Advance_Phase
+     (Arc : in out Arc_State; Human : in out Game_Actors.Human_Actor;
+      Mail : in out Game_Messages.Inbox; Dest : String)
+   is
       Next : Story_Phase;
       Prev_G : constant Game_Actors.G_Load_Tenths := Arc.G_Load_Tenths;
       Prev_C : constant Game_Atmosphere.Percent := Arc.Cabin.CO2_Percent;
       Settled : Arc_State;
    begin
-      if Arc.Phase = Dock then return; end if;
+      if Arc.Phase = Dock then
+         return;
+      end if;
       Next := Story_Phase'Succ (Arc.Phase);
       Settled := Profile_For (Next);
       Arc.Phase := Settled.Phase;
