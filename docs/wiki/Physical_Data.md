@@ -64,11 +64,11 @@ Full 1,680,000 / 100,000 kg; demo 50,000 / 500 kg.
 
 Both-open forbidden.
 
-### Storm exterior (locked)
+### Storm exterior (DS + ADA locked)
 
-**Mars-thin exterior** at **20 kPa** — Earth dust-storm *feel* (cold, visibility 0, dark midday, aurora) with thin-air pressure. **Not** the Earth crashed-air band 70–85 kPa. Code constant should be named Mars-thin (or equivalent), not anonymous Earth default.
+**Mars-thin** at **20 kPa**: code `Mars_Thin_Exterior_Pressure := 20`; `Storm_Outside_Pressure` is the **alias** (same value). Earth dust-storm *feel* (cold, visibility 0, dark midday, aurora) with thin-air pressure — **not** the Earth crashed-air band **70–85 kPa**.
 
-With Earth-mix air at 20 kPa ≈ **~4 kPa** O2-partial — unsurvivable without sealed suit/cabin. Breathe suit-loop outdoors.
+**Unsuited outdoor = hypoxia:** Earth-mix tile air at 20 kPa ⇒ O2-partial **≈ 4 kPa** (`Storm_Exterior_Air`). Survivable only in sealed cabin or sealed EVA suit loop — breathe suit-loop outdoors.
 
 Titan scenario: ~1.47–1.50 bar, ~94 K.
 
