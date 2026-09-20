@@ -31,11 +31,12 @@ Link: a **sealed double-door airlock** (never both open; chamber pressure cycles
 | 2–4 | `Game_Actors` | `Human_Actor` (O₂ + `Bunker_Room` / `Breathe_In_Bunker`) · `Robot_Actor` (power/hull/thermal) · AP · adjacent `Move_To` |
 | 3 | `Game_Items` | Backpack; hull+content mass; °C; seal→access; can opener / drill sample / process; plasma breach = heat + burn/shock + game over |
 | 5 | `Game_Environment` | 4F depth · airlock · outdoor storm · satellite frame · aurora |
+| 6 | `Game_Dream_RSI` | Explore→Construct→Dream→Redeploy; discovery tree + policy improve |
 | Next | Turn clock | Priority queue / AP tick scheduling |
 | Next | Matter tools | `Siphon_Liquid` / `Bleed_Gas` (solid drill already shipped) |
 | Next | Player room | Central console object as typed bunker furniture |
 
-**Tests:** `make test` — **101** assertions, zero warnings under `-gnatwa`.
+**Tests:** `make test` — **108** assertions, zero warnings under `-gnatwa`.
 
 ## Architecture
 
