@@ -65,6 +65,19 @@ begin
    Check
      (not R.Is_Passable (Room, Room.Console_X, Room.Console_Y),
       "Console island is impassable");
+   Check
+     (R.Cell_At (Room, Room.Suit_Hook_X, Room.Suit_Hook_Y).Kind = R.Suit_Hook,
+      "Suit hook cell present");
+   Check
+     (R.Cell_At (Room, Room.Suit_Hook_X, Room.Suit_Hook_Y).Height = 200,
+      "Suit hook hang height 200 cm (2000 mm)");
+   Check (Room.Suit_On_Hook, "Suit starts on hook");
+   Check
+     (R.Cell_At (Room, Room.Door_X, Room.Door_Y).Kind = R.Airlock_Door,
+      "Inner airlock door on map");
+   Check
+     (R.Cell_At (Room, Room.Outer_Door_X, Room.Outer_Door_Y).Kind = R.Outer_Door,
+      "Outer door on map");
 
    Cfg_A := S.Load_Scenario (S.Bunker_Rover_Storm);
    Cfg_B := S.Load_Scenario (S.Titan_Flight_Control);
