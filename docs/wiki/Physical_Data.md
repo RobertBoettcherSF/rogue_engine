@@ -2,7 +2,7 @@
 
 Factual baselines for typed Ada contracts. **Code may clamp for playability**, but units and order-of-magnitude must match these tables. Cite sources in commit messages when numbers change.
 
-Owner: Operations Manager. Consumers: `Game_Environment`, `Game_Actors`, `Game_Items`, `Game_Scenario`, `Game_Ops_Room`, `Game_Strider`.
+Owner: Operations Manager. Consumers include `Game_Environment`, `Game_Actors`, `Game_Items`, `Game_Scenario`, `Game_Ops_Room`, `Game_Strider`, and suit/EVA packages.
 
 Unit convention: [SI_Units.md](SI_Units.md).
 
@@ -12,75 +12,94 @@ Unit convention: [SI_Units.md](SI_Units.md).
 
 | Symbol | Value | Notes |
 |--------|-------|-------|
-| Comfortable carry @ Strength 4–6 | **5 kg** | Player felt ~5 kg as capacity |
-| Example load that bites | **10 kg** potatoes | Already over-encumbered, not normal |
-| Unit | grams / `Mass_Grams` | Integer grams for food, drink, personal carry |
+| Comfortable carry @ Strength 4–6 | **5 kg** | Mid Strength baseline |
+| Example load that bites | **10 kg** potatoes | Over-encumbered |
+| Unit | grams / `Mass_Grams` | Food, drink, personal carry |
+
+---
+
+## EVA suit / helmet (IRL defaults)
+
+Default play profile: **ISS EMU-class**. Orlan-class is an alternate profile. Helmet locked + suit sealed required before storm-side airlock exit. While sealed outdoors, breathe from **suit loop**, not tile air.
+
+### ISS EMU-class (default)
+
+| Quantity | Value | Source notes |
+|----------|-------|--------------|
+| Suit assembly mass (no PLSS) | **~55 kg** (122 lb) | NASA EMU fact sheet |
+| Total mass PLSS + SAFER (ISS) | **~145 kg** (319 lb) | NASA EMU fact sheet |
+| Total mass PLSS + SAFER (Shuttle ref.) | **~125 kg** (275 lb) | NASA EMU fact sheet |
+| Operating pressure | **29.6 kPa** (4.3 psi) | 100% O2 |
+| Primary life support | **~8 h** nominal (mission planning often ~6.5–8 h useful) | PLSS |
+| Emergency O2 reserve | **~30 min** | Secondary Oxygen Pack |
+| Prebreathe / cabin step-down | Required when going bunker ~101 kPa air to 29.6 kPa O2 | DCS risk; demo may shorten with explicit Spec flag |
+
+### Orlan-class (alternate)
+
+| Quantity | Value | Source notes |
+|----------|-------|--------------|
+| Suit mass | **~110 kg** | Orlan-MKS published specs |
+| Operating pressure | **40 kPa** (0.04 MPa) | Absolute in-suit |
+| Autonomous EVA | **~7 h** (some docs up to ~9 h warranty class) | |
+
+### Game rules
+
+1. Don suit + lock helmet before opening outer airlock to storm.
+2. Suit mass counts toward carry / over-encumbrance (`Mass_Kilograms` for worn vehicle-scale load, or grams if you keep worn gear under human carry — prefer **kg** for full EMU ~145 kg).
+3. Autopilot breathe uses suit absolute pressure and O2 fraction while sealed; tile air only when helmet unlocked indoors.
+4. Life-support timer depletes; at 0 primary, only emergency reserve remains; at 0 reserve, hypoxia path.
 
 ---
 
 ## Strider scale (vehicle)
 
-Use `Mass_Kilograms` (or megagrams), **not** human `Mass_Grams` capped at 1 t.
+Use `Mass_Kilograms`, not human `Mass_Grams`.
 
 | Quantity | Full class | Demo stand-in |
 |----------|------------|---------------|
-| Empty mass | **1,680,000 kg (1,680 t)** | **50,000 kg (50 t)** |
-| Payload class | **100,000 kg (100 t)** | **500 kg** |
-| Payload / empty | **~5.95%** | 1% |
+| Empty mass | **1,680,000 kg** | **50,000 kg** |
+| Payload | **100,000 kg** (trivial / ~6% of empty) | **500 kg** |
 | Step | ~12 m | 1 m tile |
-| Cruise / hard speed | ~13 / ~21 m/s | turn/AP limited |
-| Nameplate / overload power | 14 / 19 MW | kW budget |
-| Snow wade | ~5 m | scenario scaled |
+| Power | 14 MW / 19 MW overload | kW budget |
 
-**Locked behavior:** for a full-class strider, **100 t is trivial/light-class payload**. Ada should expose a typed predicate such as `Payload_Is_Trivial`; 100,000 kg must pass, while a larger threshold fails. Demo scaling is about 1/34 empty mass and is documented, not silently treated as full class.
+`Payload_Is_Trivial` must accept 100,000 kg on full class.
 
 ---
 
 ## Bunker air (human)
 
-| Quantity | Baseline | Game use |
-|----------|----------|----------|
-| O2 fraction (safe band) | 18.5–23% vol | Keep `O2_Percent` in band; leave = hypoxia |
-| O2 consumption (resting design) | **0.5 L/min/person** | ~720 L/day |
-| Sleep O2 draw | ~**0.35 L/min/person** | Demo target |
-| CO2 danger | rises **before** O2 runs out | Scrub / vent |
-| Bunker depth | **4 floors** | `Bunker_Floor_Depth` |
+| Quantity | Baseline |
+|----------|----------|
+| O2 safe band | 18.5–23% vol |
+| Resting O2 draw | **0.5 L/min/person** |
+| Sleep O2 draw | **~0.35 L/min/person** |
+| Default ops room | 20 m2 floor x 2.2 m ≈ **44 m3** |
+| Bunker depth | 4 floors |
 
-### Floor m2 vs air volume m3
-
-| Space | Floor | Clear height | Air volume |
-|-------|-------|--------------|------------|
-| Small sealed nook (optional) | ~6–9 m2 | ~2.2 m | ~12–20 m3 |
-| Default ops room | **5x4 m = 20 m2** | **2.2 m** | **~44 m3** (~44,000 L) |
-
-Autopilot breathe uses current tile/cell absolute pressure times O2 fraction. Bunker example: 101 kPa x 21% ≈ 21 kPa O2 partial pressure. Tissue oxygenation drops outside roughly 16–24 kPa or when CO2 climbs first.
+Autopilot (unsuited): effective O2 = absolute P (kPa) x O2 fraction. Healthy band ~16–24 kPa; CO2 can fail first.
 
 ---
 
 ## Airlock
 
-Both-open is forbidden. Cycle chamber to target pressure before matching door opens. Effective purge should use no more than four volume exchanges; gameplay cycle is roughly 1–5 minutes or proportional AP.
+Both-open forbidden. Equalize chamber before matching door. Prefer ≤4 volume exchanges. Outer exit to storm requires sealed suit+helmet when exterior is unsurvivable on tile air.
 
 ---
 
 ## Outdoor storm
 
-Default Earth analog should split sealed cabin (~90–101 kPa) from hostile exterior (~70–85 kPa), unless an explicit Mars-thin profile is selected.
-
-**Open code drift:** unnamed 20 kPa exterior is not the documented Earth default. Name it Mars-thin or align it to Earth analog.
-
-Other defaults: cold, ground visibility 0, dark at radio midday, aurora, coarse satellite overhead.
+Prefer cabin vs exterior split. Unnamed **20 kPa** exterior is not the documented Earth default (70–85 kPa) unless marked Mars-thin. Storm tile air with Earth mix at 20 kPa ≈ 4 kPa O2-partial — unsurvivable without suit/cabin.
 
 ---
 
 ## Titan-style scenario
 
-Surface pressure ~1.47–1.50 bar; temperature ~94 K; N2-rich + CH4, not breathable. Kelvin is the physics source of truth.
+~1.47–1.50 bar surface; ~94 K; not breathable. Kelvin SoT.
 
 ---
 
 ## Update rule
 
 1. Ops revises numbers from research/playtests.
-2. ADA adjusts contracts from this page + Specs.
-3. Code/wiki divergence is fixed in the same PR.
+2. ADA implements from Spec + this page.
+3. Fix code/wiki drift in the same PR.
